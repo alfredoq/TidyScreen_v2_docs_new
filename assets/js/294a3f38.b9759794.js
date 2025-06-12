@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunktidy_screen_v_2_docs_new=self.webpackChunktidy_screen_v_2_docs_new||[]).push([[1779],{1353:e=>{e.exports=JSON.parse('{"metadata":{"permalink":"/TidyScreen_v2_docs_new/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

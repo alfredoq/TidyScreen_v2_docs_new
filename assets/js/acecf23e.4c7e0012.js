@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunktidy_screen_v_2_docs_new=self.webpackChunktidy_screen_v_2_docs_new||[]).push([[1903],{1912:e=>{e.exports=JSON.parse('{"blogBasePath":"/TidyScreen_v2_docs_new/blog","blogTitle":"Blog","authorsListPath":"/TidyScreen_v2_docs_new/blog/authors"}')}}]);
