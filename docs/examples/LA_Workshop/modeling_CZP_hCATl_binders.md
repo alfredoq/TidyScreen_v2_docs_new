@@ -10,8 +10,10 @@ Using bash after project creation
 # Retrieve a structure corresponding to CZP
 $ mkdir -p /PATH/TO/PROJECT/docking/raw_data/2OZ2
 $ wget -O /PATH/TO/PROJECT/docking/raw_data/2OZ2/2OZ2.pdb https://files.rcsb.org/download/2OZ2.pdb
-
 ```
+
+Alternatively you can download 2OZ2.pdb from [here](/downloads/LA_Workshop/2OZ2.pdb) (*right-click and download*)
+
 
 **Step 2**: Processing of raw crystallographic structures
 
@@ -68,6 +70,9 @@ $ autogrid4 -p receptor.gpf -l receptor.glg
 # The corresponding grid maps will be created in the receptor folder
 ```
 
+You should end up with a receptor folder a included in asdsa [this](/downloads/LA_Workshop/2OZ2.zip) folder (*right-click to download compressed folder*)
+
+
 **Step 4**: Import the prepared receptor into TidyScreen
 
 ```python 
@@ -80,4 +85,21 @@ Provide a brief description of the receptor model: # Input the required info
 Succesfully stored receptor model
 Successfully stored the receptor model in the database.
 ```
+
+**Step 5**: For the purposes of this tutorial, we will be using a diverse set of receptor models:
+
+* Refined CZP structure [donwload zipped folder](/downloads/LA_Workshop/CZP_refined.zip)
+* hCatL X-ray structure [donwload zipped folder](/downloads/LA_Workshop/8hfv.zip)
+* Refined hCatL structure [donwload zipped folder](/downloads/LA_Workshop/hCatL_refined.zip)
+
+After downloading and extracting the folders, these alternative receptor models can be imported:
+
+```python 
+>>> la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/8hfv")
+...
+>>> la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/CZP_refined")
+...
+>>> la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/hCatLs_refined")
+```
+
 
