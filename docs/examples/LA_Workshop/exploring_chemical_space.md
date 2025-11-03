@@ -315,7 +315,7 @@ After running the filtering step, TidyScreen automatically creates **new tables*
 
 You can identify these new tables by their names (e.g., `emolecules_subset_1_subset_4`, `emolecules_subset_2_subset_5`, etc.), each corresponding to the filtered version of the original subsets.
 
-### 2.2. 💸 Price-based prioritization with Ersilia (EOS `eos7a45`)
+### 2.2. 💸 Price-based prioritization with Ersilia
 
 To further improve **synthetic feasibility**, we will estimate reagent prices using an *Ersilia Open Source Initiative* model and then subset our building blocks by **price ranges**.  
 The model `eos7a45` (CopriNet-style predictor) adds a new column to your table (i.e., `eos7a45_coprinet`) with an estimated price score.
@@ -385,14 +385,20 @@ These curated sets combine **structural suitability**, **favorable physicochemic
 In this section, we will virtually replicate the multistep synthetic route that combines the three types of prioritized building blocks - **amino acids, aldehydes, and methylene amines** - to generate the desired **triazole-based potential TCIs**.
 
 #### Reaction scheme overview
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/Synthetic_Scheme_Whorkshop.png" alt="Description of image" width="900"/>
+  <figcaption>General synthetic workflow leading to triazole-based inhibitors. </figcaption>
+  </p>
+</figure>
+---
 
-`#![Reaction scheme placeholder](path/to/your/scheme.png)`
-*Figure X. General synthetic sequence leading to triazole-based inhibitors.*
 
 The synthetic plan consists of six consecutive transformations:
-1. **Diazotransfer** to generate azides from α-amino acids.  
-2. **Acylation** to prepare an ester intermediate.  
-3. **A³ coupling** to afford *propargylamines*.  
+1. **Acylation** to prepare an ester intermediate from α-amino acids.  
+2. **Diazotransfer** to generate α-azido esters.  
+3. **A3 coupling** to afford *propargylamines*.  
 4. **CuAAC reaction** (*click chemistry*) to form 1,4-disubstituted 1,2,3-triazoles.  
 5. **DIBAL reduction** to partially reduce carbonyl intermediates.  
 6. **Horner–Wadsworth–Emmons olefination** to append the *phenyl-vinylsulfone warhead*.
@@ -418,9 +424,9 @@ Let’s now populate the database with the six transformations corresponding to 
 
 Add the SMARTS reaction for diazotransfer
 ```python title="workshop.py"
-la_workshop_cs.add_smarts_reaction("[NX3;H2:1][CX4:2][CX3,H0:3]>>[N-]=[N+]=[NX2;H0:1][CX4:2][CX3,H0:3]", "Diazotransfer")
-
 la_workshop_cs.add_smarts_reaction("[CX3:1](=[O:2])[OX2H,OX1-:3]>>[C:1](=[O:2])[O:3][C]", "Acylation")
+
+la_workshop_cs.add_smarts_reaction("[NX3;H2:1][CX4:2][CX3,H0:3]>>[N-]=[N+]=[NX2;H0:1][CX4:2][CX3,H0:3]", "Diazotransfer")
 
 la_workshop_cs.add_smarts_reaction("[N:1].[CX3H1:2](=[O:3])>>[NX4+:1][C@H:2][C:4]#[C:5]", "A3 coupling")
 
@@ -439,8 +445,8 @@ la_workshop_cs.list_available_smarts_reactions()
 
 *Output*:  
 `Available SMARTS reactions:`  
-`Reaction_id: 1, Name: Diazotransfer`  
-`Reaction_id: 2, Name: Acylation`  
+`Reaction_id: 1, Name: Acylation`  
+`Reaction_id: 2, Name: Diazotransfer`  
 `Reaction_id: 3, Name: A3 coupling`  
 `Reaction_id: 4, Name: CuAAC`  
 `Reaction_id: 5, Name: DIBAL reduction`  
@@ -466,8 +472,8 @@ Now, execute the workflow, specifying which reagent sets participate in each sta
 
 ```python title="workshop.py"
 la_workshop_cs.apply_reaction_workflow(1,           # Workflow ID 
-    [   ["aminoacids_druglike_cheap"],              # Step 1: Diazotransfer
-        ["->:-1"],                                  # Step 2: Acylation
+    [   ["aminoacids_druglike_cheap"],              # Step 1: Acylation
+        ["->:-1"],                                  # Step 2: Diazotransfer
         ["amines_druglike_cheap", "aldehydes_druglike_cheap"],  # Step 3: A3 coupling
         ["->:-2", "->:-1"],                         # Step 4: CuAAC
         ["->:-1"],                                  # Step 5: DIBAL reduction
