@@ -246,254 +246,324 @@ la_workshop_cs.depict_ligand_table("emolecules_subset_3", limit=25, random=True)
 
 ## 2. Building blocks prioritization
 
-Compute default properties for Aldehydes: ["MolWt","MolLogP","NumHDonors","NumHAcceptors","NumRotatableBonds","TPSA"]
+In order to narrow down the huge number of potential reactants, we will compute a set of standard **drug-like properties** and apply **Ersilia models** for each curated subset and then **prioritize** entries by applying simple, reproducible property filters.
+
+
+### 2.1. ⚗️ Subsetting by drug-like properties (RDKit)
+
+TidyScreen relies on the open-source cheminformatics toolkit **[RDKit](https://www.rdkit.org/)** to calculate commonly used molecular descriptors directly from SMILES strings.  
+The following properties are computed by default running the `compute_properties()` function:
+
+- **MolWt** → Molecular weight  
+- **MolLogP** → Octanol-water partition coefficient (logP)  
+- **NumHDonors** → Number of hydrogen bond donors  
+- **NumHAcceptors** → Number of hydrogen bond acceptors  
+- **NumRotatableBonds** → Number of rotatable bonds  
+- **TPSA** → Topological polar surface area
+
+These descriptors are standard in medicinal chemistry and provide a simple first layer of prioritization to retain drug-like, synthetically tractable molecules.
 
 ```python title="workshop.py"
-la_workshop_cs.compute_properties("emolecules_subset_1")
-
-# Outputs
-The table named 'emolecules_subset_1' already exists in the database. I will replace it, are you ok with that? (y/n):
-# Upon prompted, select 'y' to store the table with the new computed properties
+# α-Amino acids
+la_workshop_cs.compute_properties("emolecules_subset_1") 
+# Aldehydes
+la_workshop_cs.compute_properties("emolecules_subset_2") 
+# Methyleneamines
+la_workshop_cs.compute_properties("emolecules_subset_3") 
 ```
 
-Compute default properties for Amines: ["MolWt","MolLogP","NumHDonors","NumHAcceptors","NumRotatableBonds","TPSA"]
+:::warning[!!!]
+
+Please note that when running the `compute_properties()` function you'll get the following warning: 
+
+`The table named 'emolecules_subset_X' already exists in the database. I will replace it, are you ok with that? (y/n):`.
+
+When prompted, type *`y`* to update the tables with the newly computed properties.
+:::
+
+💡 Now that all tables contain the computed molecular descriptors, you can explore their value distributions to get a sense of the chemical diversity within each subset.  
+This helps identify whether your current chemical space fits the intended *drug-like* range before applying filters.
+
+With all molecular descriptors available, we can constrain the chemical space to **compounds within defined physicochemical ranges**. This ensures that the selected building blocks remain within desirable regions of drug-like chemical space, minimizing the inclusion of overly flexible, lipophilic/hydrophilic, or bulky structures that may hinder synthesis or bioavailability.
+
+To perform this filtering, TidyScreen provides the function `subset_table_by_properties()`, which allows you to select compounds that meet specific descriptor criteria.  
+
+In this example, we keep entries with:
+
+- 200 ≤ MolWt ≤ 500
+- 1.5 ≤ MolLogP ≤ 3.0
+- NumRotatableBonds ≤ 2
+
+To retain compact, moderately lipophilic building blocks with low flexibility.
+
 
 ```python title="workshop.py"
-la_workshop_cs.compute_properties("emolecules_subset_2")
-
-# Outputs
-The table named 'emolecules_subset_2' already exists in the database. I will replace it, are you ok with that? (y/n):
-# Upon prompted, select 'y' to store the table with the new computed properties
+drug_like_filters=["MolWt>=200","MolWt<=500","MolLogP>=1.5","MolLogP<=3","NumRotatableBonds<=2"]
+# α-Amino acids
+la_workshop_cs.subset_table_by_properties("emolecules_subset_1",drug_like_filters)
+# Aldehydes
+la_workshop_cs.subset_table_by_properties("emolecules_subset_2",drug_like_filters)
+# Methyleneamines
+la_workshop_cs.subset_table_by_properties("emolecules_subset_3",drug_like_filters)
 ```
 
-Compute default properties for Amino acids: ["MolWt","MolLogP","NumHDonors","NumHAcceptors","NumRotatableBonds","TPSA"]
+:::note[Output]
+When using the `subset_table_by_properties()` function, you will be prompted to enter a **short description** of the new subset. Being as detailed as possible will help you avoid misunderstandings and ensure clear tracking and reproducibility.
+:::
+
+After running the filtering step, TidyScreen automatically creates **new tables** inside your project database (`chemspace.db`). Each of them contains only the compounds that **match all defined property conditions**, effectively reducing the chemical space to its most promising and drug-like entries.  
+
+You can identify these new tables by their names (e.g., `emolecules_subset_1_subset_4`, `emolecules_subset_2_subset_5`, etc.), each corresponding to the filtered version of the original subsets.
+
+### 2.2. 💸 Price-based prioritization with Ersilia (EOS `eos7a45`)
+
+To further improve **synthetic feasibility**, we will estimate reagent prices using an *Ersilia Open Source Initiative* model and then subset our building blocks by **price ranges**.  
+The model `eos7a45` (CopriNet-style predictor) adds a new column to your table (i.e., `eos7a45_coprinet`) with an estimated price score.
 
 ```python title="workshop.py"
-la_workshop_cs.compute_properties("emolecules_subset_3")
+# α-Amino acids
+la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_1_subset_4", "eos7a45")
 
-# Outputs
-The table named 'emolecules_subset_3' already exists in the database. I will replace it, are you ok with that? (y/n):
-# Upon prompted, select 'y' to store the table with the new computed properties
+# Aldehydes
+la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_2_subset_5", "eos7a45")
+
+# Methyleneamines
+la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_3_subset_6", "eos7a45")
 ```
 
-Subset by drug-like properties the Aldehydes table ('emolecules_subset_1')
+To inspect the range of predicted prices (min-max) per subset and set realistic thresholds, we can use  `sqlite3` in a *bash terminal*.
 
-```python title="workshop.py"
-la_workshop_cs.subset_table_by_properties("emolecules_subset_1",["MolWt>=200","MolWt<=500","MolLogP>=1.5","MolLogP<=3","NumRotatableBonds<=2"])
-
-# Outputs
-Enter a description for the subset: # Input for example 'Priotirized Aldehydes'
-Succesfully subseted table: 'emolecules_subset_1' by properties: '['MolWt>=200', 'MolWt<=500', 'MolLogP>=1.5', 'MolLogP<=3', 'NumRotatableBonds<=2']'
-```
-
-Subset by drug-like properties the Amines table ('emolecules_subset_2')
-
-```python title="workshop.py"
-la_workshop_cs.subset_table_by_properties("emolecules_subset_2",["MolWt>=200","MolWt<=500","MolLogP>=1.5","MolLogP<=3","NumRotatableBonds<=2"])
-
-# Outputs
-Enter a description for the subset: # Input for example 'Priotirized Amines'
-Succesfully subseted table: 'emolecules_subset_2' by properties: '['MolWt>=200', 'MolWt<=500', 'MolLogP>=1.5', 'MolLogP<=3', 'NumRotatableBonds<=2']'
-```
-
-Subset by drug-like properties the Amino Acids table ('emolecules_subset_3')
-
-```python title="workshop.py"
-la_workshop_cs.subset_table_by_properties("emolecules_subset_3",["MolWt>=200","MolWt<=500","MolLogP>=1.5","MolLogP<=3","NumRotatableBonds<=2"])
-
-# Outputs
-Enter a description for the subset: # Input for example 'Priotirized Amino Acids'
-Succesfully subseted table: 'emolecules_subset_3' by properties: '['MolWt>=200', 'MolWt<=500', 'MolLogP>=1.5', 'MolLogP<=3', 'NumRotatableBonds<=2']'
-```
-
-Compute the prices using EOS eos7a45 model for Aldehydes
-
-```python title="workshop.py"
-la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_1_subset_4","eos7a45")
-```
-
-Compute the prices using EOS eos7a45 model for Amines
-
-```python title="workshop.py"
-la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_2_subset_5","eos7a45")
-```
-
-Compute the prices using EOS eos7a45 model for Amino Acids
-```python title="workshop.py"
-la_workshop_cs.apply_ersilia_model_on_table("emolecules_subset_3_subset_6","eos7a45")
-```
-
-Get the price ranges for Aldehydes
 ```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_1_subset_4 WHERE eos7a45_coprinet IS NOT NULL;"
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
+"SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_1_subset_4 WHERE eos7a45_coprinet IS NOT NULL;"
 
-# Outputs
-1.24|7.24
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
+"SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_2_subset_5 WHERE eos7a45_coprinet IS NOT NULL;"
+
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
+"SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_3_subset_6 WHERE eos7a45_coprinet IS NOT NULL;"
 ```
 
-Get the price ranges for Amines
+You should get the following output: 
+
+```2.66|5.60 #Amino acids```  
+```1.24|7.24 #Aldehydes```  
+```2.19|7.09 #Methyleneamines```  
+
+💬 **How to interpret these values**
+
+The `eos7a45_coprinet` field represents a **predicted cost index ($/mmol)** rather than an absolute monetary price.
+Lower scores indicate cheaper, easier-to-source reagents, while higher scores correspond to rarer or more complex compounds.
+
+These values help define cutoff thresholds that balance cost and chemical diversity, guiding which compounds will be retained for downstream in silico synthesis.
+
+🧾 **Create tables of “cheap, drug-like” building blocks**
+
+
+After computing predicted prices with the Ersilia model, we can further refine our chemical space by retaining only those compounds that are both drug-like and synthetically affordable.  
+This additional filter helps ensure that the selected reagents are not only *chemically sound* but also *economically realistic* for laboratory synthesis - a key factor when planning large-scale combinatorial campaigns.
+
+In this step, we will use *bash commands* to interact directly with the project’s SQLite database and create new tables containing only the **cost-effective reagents**, using `sqlite3` to query the project database (`chemspace.db`).
+
+Each line below:
+1. Selects only molecules within the specified price range (`BETWEEN X AND Y`), and  
+2. Stores the result as a new table labeled `*_druglike_cheap`, ready for the next stages of *in silico* library construction.
+
 ```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_2_subset_5 WHERE eos7a45_coprinet IS NOT NULL;"
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE aminoacids_druglike_cheap AS SELECT * FROM emolecules_subset_3_subset_6 WHERE eos7a45_coprinet BETWEEN 1 AND 3.5 AND eos7a45_coprinet IS NOT NULL;" # Returns 83 amino acid building blocks
 
-# Outputs
-2.19|7.09
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE aldehydes_druglike_cheap AS SELECT * FROM emolecules_subset_1_subset_4 WHERE eos7a45_coprinet BETWEEN 1 AND 2.3 AND eos7a45_coprinet IS NOT NULL;" # Returns 135 aldehyde building blocks
+
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE amines_druglike_cheap AS SELECT * FROM emolecules_subset_2_subset_5 WHERE eos7a45_coprinet BETWEEN 1 AND 2.6 AND eos7a45_coprinet IS NOT NULL;" # Returns 138 methyleneamine building blocks
 ```
 
-Get the price ranges for Aminoacids
-```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "SELECT MIN(eos7a45_coprinet), MAX(eos7a45_coprinet) FROM emolecules_subset_3_subset_6 WHERE eos7a45_coprinet IS NOT NULL;"
+You now have three price-filtered, drug-like reagent pools — `aldehydes_druglike_cheap`, `amines_druglike_cheap`, and `aminoacids_druglike_cheap`.  
+These curated sets combine **structural suitability**, **favorable physicochemical properties**, and **economic accessibility**, ensuring a realistic starting point for *in silico* combinatorial synthesis in the next module.
 
-# Outputs
-$ 2.66|5.6
-```
+## 3. Combinatorial virtual synthesis
 
-Create tables of cheap drug-like Aldehydes
-```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE aldehydes_druglike_cheap AS SELECT * FROM emolecules_subset_1_subset_4 WHERE eos7a45_coprinet BETWEEN 1 AND 2.3 AND eos7a45_coprinet IS NOT NULL;" # Returns 135 building blocks
-```
+In this section, we will virtually replicate the multistep synthetic route that combines the three types of prioritized building blocks - **amino acids, aldehydes, and methylene amines** - to generate the desired **triazole-based potential TCIs**.
 
-Create tables of cheap drug-like Amines
-```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE aldehydes_druglike_cheap AS SELECT * FROM emolecules_subset_2_subset_5 WHERE eos7a45_coprinet BETWEEN 1 AND 2.6 AND eos7a45_coprinet IS NOT NULL;" # Returns 138 building blocks
-```
+#### Reaction scheme overview
 
-Create tables of cheap drug-like Amino Acids
-```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE aldehydes_druglike_cheap AS SELECT * FROM emolecules_subset_3_subset_6 WHERE eos7a45_coprinet BETWEEN 1 AND 3.5 AND eos7a45_coprinet IS NOT NULL;" # Returns 83 building blocks
-```
+`#![Reaction scheme placeholder](path/to/your/scheme.png)`
+*Figure X. General synthetic sequence leading to triazole-based inhibitors.*
 
-**Step 9:** Combinatorial virtual synthesis
+The synthetic plan consists of six consecutive transformations:
+1. **Diazotransfer** to generate azides from α-amino acids.  
+2. **Acylation** to prepare an ester intermediate.  
+3. **A³ coupling** to afford *propargylamines*.  
+4. **CuAAC reaction** (*click chemistry*) to form 1,4-disubstituted 1,2,3-triazoles.  
+5. **DIBAL reduction** to partially reduce carbonyl intermediates.  
+6. **Horner–Wadsworth–Emmons olefination** to append the *phenyl-vinylsulfone warhead*.
 
-List available SMARTS reactions (will show empty)
+#### SMARTS-based combinatorial synthesis
+
+TidyScreen uses **SMARTS** to define chemical transformations in a machine-readable way.  Each reaction rule is a *pattern-based instruction* describing how specific functional groups in reactants (defined before `>>`) are converted into new substructures in products (defined after `>>`).
+
+This approach enables **combinatorial virtual synthesis**, allowing you to simulate multi-step reaction sequences across large datasets of reagents to produce *synthetically plausible* compound libraries.
+
+### 3.1. 🧠 Defining SMARTS reactions
+
+We begin by checking whether any reactions are already defined. 
+List available SMARTS reactions (empty at first):
 
 ```python title="workshop.py"
 la_workshop_cs.list_available_smarts_reactions()
-
-# Outputs
-SMARTS reactions table does not exist yet. Add reactions to the database first.
 ```
+
+*Output*: `SMARTS reactions table does not exist yet. Add reactions to the database first`.
+
+Let’s now populate the database with the six transformations corresponding to our synthetic route:
 
 Add the SMARTS reaction for diazotransfer
 ```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction("[NX3;H2:1][CX4:2][CX3,H0:3]>>[N-]=[N+]=[NX2;H0:1][CX4:2][CX3,H0:3]", "Diazotransfer")
-```
 
-Add the SMARTS reaction for an acylation intermediate step
-```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction("[CX3:1](=[O:2])[OX2H,OX1-:3]>>[C:1](=[O:2])[O:3][C]", "Acylation")
-```
 
-Add the SMARTS reaction for A3 A3 coupling ion chiral - Note a specific stereochemistry is defined for reaction products
-```python title="workshop.py"
-la_workshop_cs.add_smarts_reaction("[N:1].[CX3H1:2](=[O:3])>>[NX4+:1][C@H:2][C:4]#[C:5]", "A3 coupling ion chiral")
-```
+la_workshop_cs.add_smarts_reaction("[N:1].[CX3H1:2](=[O:3])>>[NX4+:1][C@H:2][C:4]#[C:5]", "A3 coupling")
 
-Add the SMARTS reaction for CuAAC
-```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction("[NX1-:1]=[NX2+:2]=[NX2:3].[CX2H1:4]#[CX2H0:5]>>[NX2+0:1]1=[NX2+0:2][N:3]-[C:4]=[C:5]1", "CuAAC")
-```
 
-Add the SMARTS reaction for the DIBAL reduction
-```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction("[CX3:1](=[O:2])[OX2,OX1-:3]>>[CX3H1:1](=[O:2])", "DIBAL reduction")
-```
 
-Add the SMARTS reaction for the Horner_Wadsworth_Emmons olefination reaction
-```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction("[CX4:1][CX3H1:2](=[O:3])>>[CX4:1]\[CX3H1:2]=[CX3H1]\[S](=O)(=O)c1ccccc1", "Horner_Wadsworth_Emmons Olefination")
 ```
 
-List available SMARTS reactions
+We can verify that all reactions were correctly registered:
+
 ```python title="workshop.py"
 la_workshop_cs.list_available_smarts_reactions()
 ```
 
-Create a reaction workflow to obtain the target triazoles library: Diazotransfer -> Acylation -> A3 coupling ion chiral -> CuAAC -> DIBAL reduction -> Horner_Wadsworth_Emmons Olefination
+*Output*:  
+`Available SMARTS reactions:`  
+`Reaction_id: 1, Name: Diazotransfer`  
+`Reaction_id: 2, Name: Acylation`  
+`Reaction_id: 3, Name: A3 coupling`  
+`Reaction_id: 4, Name: CuAAC`  
+`Reaction_id: 5, Name: DIBAL reduction`  
+`Reaction_id: 6, Name: Horner_Wadsworth_Emmons Olefination`  
+
+### 3.2. 🧪 Creating and applying a reaction workflow
+
+TidyScreen allows the definition of multi-step reaction workflows, enabling sequential application of transformations to progressively build a virtual library.
+
+Here, we will chain the six reactions defined above into a single workflow that mimics our synthetic plan:
 
 ```python title="workshop.py"
 la_workshop_cs.add_smarts_reaction_workflow([1,2,3,4,5,6])
 ```
 
-List available reaction workflow
+List the available workflows to confirm creation:
+
 ```python title="workshop.py"
 la_workshop_cs.list_available_reactions_workflows()
 ```
 
-Execute the reaction workflow
+Now, execute the workflow, specifying which reagent sets participate in each stage. The order and arrows (`->:-1`, etc.) indicate how intermediate products feed into the next transformation.
+
 ```python title="workshop.py"
-la_workshop_cs.apply_reaction_workflow(1,[["aminoacids_druglike_cheap"],["->:-1"],["amines_druglike_cheap","aldehydes_druglike_cheap"],["->:-2","->:-1"],["->:-1"],["->:-1"]])
+la_workshop_cs.apply_reaction_workflow(1,           # Workflow ID 
+    [   ["aminoacids_druglike_cheap"],              # Step 1: Diazotransfer
+        ["->:-1"],                                  # Step 2: Acylation
+        ["amines_druglike_cheap", "aldehydes_druglike_cheap"],  # Step 3: A3 coupling
+        ["->:-2", "->:-1"],                         # Step 4: CuAAC
+        ["->:-1"],                                  # Step 5: DIBAL reduction
+        ["->:-1"]                                   # Step 6: HWE olefination
+    ])
 ```
 
-Depict a sample of the generated virtual library
+This process may take several minutes depending on the number of reactants and system resources.
+All generated intermediates and final products are automatically stored in the project’s chemspace database under the name `reaction_set_1`.
+
+To get a sense of the diversity and plausibility of your newly generated compounds, you can visualize a random subset of the virtual triazole derivatives:
+
 ```python title="workshop.py"
 la_workshop_cs.depict_ligand_table("reaction_set_1", limit=25, random=True)
 ```
 
+The output will generate a grid of 2D structures and save it in `/PATH/TO/PROJECT/chemspace/processed_data/misc`
 
-**Step 10:** Candidates prioritization
+This figure provides a quick visual overview of the chemical diversity, substitution patterns, and structural coherence of the in silico library; a valuable sanity check before proceeding to molecular docking.
 
-Predict Human cytotoxicity endpoints based on eos21q7
+✅ You have now constructed a multi-step combinatorial virtual synthesis pipeline, producing a library of triazole-based analogues ready for the next step: virtual screening and docking against CZP and hCatL. Wait... ready? 🤔
+
+## 4. Candidates prioritization
+
+To reduce late-stage attrition and keep *wet-lab* efforts focused, we will filter the virtual products by **predicted human cytotoxicity** using again an **Ersilia** model. Then, we will keep candidates with low predicted cytotoxicity for the docking stage.
+
+Here we use the EOS model `eos21q7`, which provides a probability-like score stored as `eos21q7_dili_probability` (*higher values* = *greater risk*).
+
 ```python title="workshop.py"
 la_workshop_cs.apply_ersilia_model_on_table("reaction_set_1","eos21q7")
 ```
 
-Check the cytotocicity ranges for the compounds
+Query the project database from bash using `sqlite3` to explore the distribution and set realistic thresholds:
 
 ```bash
 sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "SELECT MIN(eos21q7_dili_probability), MAX(eos21q7_dili_probability) FROM reaction_set_1 WHERE eos21q7_dili_probability IS NOT NULL;
+```
 
-# Outputs
-0.28|0.73
-``` 
+*Outputs*: `0.28|0.73`
 
-Select the 5K safest compounds (lowest cytotoxicity probability) for molecular docking
+Here we select the 5000 compounds with the lowest predicted cytotoxicity and store them in a new table. Only those compounds will be submitted to molecular docking.
 
 ```bash
-sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE candidates_for_docking AS SELECT * FROM reaction_set_1 WHERE eos21q7_dili_probability IS NOT NULL ORDER BY eos21q7_dili_probability ASC LIMIT 5000;"
+sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
+"CREATE TABLE candidates_for_docking AS
+ SELECT *
+ FROM reaction_set_1
+ WHERE eos21q7_dili_probability IS NOT NULL
+ ORDER BY eos21q7_dili_probability ASC
+ LIMIT 5000;"
 ```
 
-**Step 11:** Molecular docking of candidates
+🙌 You now have a **price-aware, drug-like, synthetically feasible, and low-cytotoxicity** candidate set; effectively defining a **rational and efficient chemical space** for *in silico* exploration. These compounds are ready for the **virtual screening stage** against **CZP**, followed by **counter-screening** versus **hCatL** to assess selectivity.
 
-Prepare molecules in the candidates_for_docking table for docking
-`python
+
+## 5. vHTS
+
+### 5.1. ⚙️ Molecular docking of prioritized candidates
+
+With the chemical space now refined and filtered, we are ready to perform *molecular docking* of the 5K safest and most promising compounds against **CZP**; and later, for selectivity assessment, against **hCatL**.
+
+First, prepare all ligands in the `candidates_for_docking` table.  
+
+```python title="workshop.py"
 la_workshop_cs.generate_mols_in_table("candidates_for_docking")
-`
-
-Instantiate a MolDock object to activate docking methods
 ```
+
+Instantiate a MolDock object to enable access to docking-related functions:
+
+```python title="workshop.py"
 la_workshop_moldock = md.MolDock(la_workshop)
 ```
 
-Create custom docking conditions
+Set the docking campaign using your prepared receptor and validated parameter sets. In this example, we use receptor model 3 (the refined CZP structure) and docking parameters 2.
 
 ```python title="workshop.py"
-la_workshop_moldock.create_docking_params_set()
+la_workshop_moldock.dock_table("candidates_for_docking",
+                               id_receptor_model=3,
+                               id_docking_params=2)
 ```
 
-Here we need to open sqlite_web and duplciate the default parameters to update n_runs=100
+Once the assay is created, TidyScreen automatically generates multiple executable scripts, each containing 1000 docking runs (in total, 5000 compounds = 5 scripts).
+
+You can launch them directly from the terminal:
 
 ```bash
-sqlite_web docking/params/docking_params.db
-
-# Will open a local window to edit the database
-```
-
-Docking of selected candidates
-```python title="workshop.py"
-la_workshop_moldock.dock_table("candidates_for_docking",id_receptor_model=3,id_docking_params=2)
-
-# Remenber: receptor model 3 corresponds to the refined CZP receptor
-```
-
-Upon creation of the docking assay, 5 executabl files containing 1000 docking runs are created, the can be launched from the terminal:
-```bash
-# Note: the execution of the script below requires the availability of a local GPU board.
 for i in $(seq 1 11); do ./docking_execution_${i}.sh ; done
 ```
 
-**Step 12:** Docking results analysis
+:::warning[Important]
+Docking execution requires access to a local GPU board or a compatible GPU computing environment. If no GPU resources are available, these scripts cannot be executed, and docking should instead be run on a properly configured workstation or HPC cluster.
+:::
+
+### 5.2. 📊 Docking results analysis
 
 
-**Step 13:** Selection of candidates for chemical synthesis
+### 5.3. 🎯 Selection of candidates for synthesis
 
 
