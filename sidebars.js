@@ -79,8 +79,8 @@ tutorialSidebar: [
           type: 'category',
           label: 'LA Workshop',
           items: [
-            'examples/LA_Workshop/introduction',
             'examples/LA_Workshop/design_of_TCIs_targeting_CZP',
+            'examples/LA_Workshop/introduction',
             'examples/LA_Workshop/modeling_CZP_hCATl_binders',
             'examples/LA_Workshop/modeling_a_training_set',
             'examples/LA_Workshop/exploring_chemical_space',
