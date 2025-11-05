@@ -1,5 +1,5 @@
 ---
-title: Evaluation of a training set
+title: 4. Evaluation of a training set
 ---
 
 Before performing large-scale virtual screening, it is essential to validate the docking workflow using a **well-characterized benchmark set**.  

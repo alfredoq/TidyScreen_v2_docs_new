@@ -1,5 +1,5 @@
 ---
-title: Receptors modeling and validation
+title: 3. Receptors modeling and validation
 ---
 
 **Step 1**: Retrieve receptors crystallographic structures

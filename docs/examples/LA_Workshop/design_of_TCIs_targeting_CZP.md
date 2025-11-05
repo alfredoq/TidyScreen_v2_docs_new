@@ -1,5 +1,5 @@
 ---
-title: Design of Targeted Covalent Inhibitors (TCIs) targeting Cruzipain
+title: 1. Design of Targeted Covalent Inhibitors (TCIs) targeting Cruzipain
 ---
 
 ## Chagas Disease: A Neglected Global Challenge
