@@ -77,7 +77,7 @@ tutorialSidebar: [
         // 'examples/LA_Workshop',
         {
           type: 'category',
-          label: 'LA Workshop',
+          label: 'LA Workshop 2025',
           items: [
             'examples/LA_Workshop/design_of_TCIs_targeting_CZP',
             'examples/LA_Workshop/introduction',

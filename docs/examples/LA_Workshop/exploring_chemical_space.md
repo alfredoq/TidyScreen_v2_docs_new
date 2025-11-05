@@ -1,5 +1,5 @@
 ---
-title: Chemical space design and vHTS workflow
+title: 5. Chemical space design and vHTS workflow
 ---
 
 # Chemical Space Design and vHTS Workflow

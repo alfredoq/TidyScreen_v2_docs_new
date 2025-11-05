@@ -1,5 +1,5 @@
 ---
-title: Receptor modeling and validation
+title: 3. Receptor modeling and validation
 ---
 
 Before moving on to large-scale virtual screening, it is essential to validate the docking conditions on a trusted reference system. In this section, we will **prepare and import the receptor structures** used throughout the workshop, and perform a **validation docking experiment** using *K777* as reference.

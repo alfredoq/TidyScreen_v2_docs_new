@@ -1,5 +1,5 @@
 ---
-title: Introduction to TidyScreen projects
+title: 2. Introduction to TidyScreen projects
 ---
 
 TidyScreen projects provide a structured environment for organizing and managing all data, scripts, and results generated throughout your virtual screening workflows. 
@@ -81,10 +81,12 @@ These are automatically created when running `create_project()`:
 la_workshop_2025/
 ├── chemspace/          
 │   └── ...  # storage of input chemical libraries and processed datasets
-├── moldock/            
+├── docking/            
 │   └── ...  # receptor files, docking assays, docking parameters, etc.
-├── docking_analysis/   
-    └── ...  # post-docking results, fingerprints, and scoring summaries
+├── dynamics/   
+    └── ...  # molecular dynamics simulations on selected systems
+├── ml/   
+    └── ...  # management of data associated to the development of machine learning models used in the campaign
 ```
 
 We will be exploring the contents of each folder as this tutorial advances in the next sections.
