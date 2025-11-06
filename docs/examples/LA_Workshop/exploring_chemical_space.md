@@ -569,6 +569,153 @@ Docking execution requires access to a local GPU board or a compatible GPU compu
 
 ### 5.2. 📊 Docking results analysis
 
+Analyze the docking results for assay 6 (docking of _candidates_for_docking to CZP refined receptor)
+
+```python title="workshop.py"
+la_workshop_docking_analysis.process_docking_assay(assay_id=6,max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+```
+
+Use SQL queries to extract the top 100 compounds based on docking score
+
+```bash
+sqlite3 -header -table docking/docking_assays/assay_6/assay_6.db "SELECT LigName, sub_pose, docking_score FROM Results ORDER BY docking_score ASC LIMIT 100" # Note that lower scores are better compared to the training set results
+
+################
+### Outputs ####
+################
+# +-----------------------------+-------------------------------+---------------+
+# |           LigName           |           sub_pose            | docking_score |
+# +-----------------------------+-------------------------------+---------------+
+# | CYWLRULGWUKHND-QDRCWIAMSA-O | CYWLRULGWUKHND-QDRCWIAMSA-O_1 | -8.15         |
+# | AABZCBAGAYRJDZ-ROLKXXGCSA-N | AABZCBAGAYRJDZ-ROLKXXGCSA-N_1 | -8.0          |
+# | MBTIUSBPXHCMMC-GHDUTYINSA-O | MBTIUSBPXHCMMC-GHDUTYINSA-O_1 | -7.99         |
+# | ULUDSBKRRIDGPN-LQTKSSSVSA-O | ULUDSBKRRIDGPN-LQTKSSSVSA-O_1 | -7.98         |
+# | XPIFPVCHVHNQHJ-RILXKHBHSA-O | XPIFPVCHVHNQHJ-RILXKHBHSA-O_1 | -7.94         |
+# | YKLJSRDWNOQPQO-OQBDGEOBSA-N | YKLJSRDWNOQPQO-OQBDGEOBSA-N_1 | -7.94         |
+# | VBFTWLUZOOZBPB-RJCWRSEOSA-O | VBFTWLUZOOZBPB-RJCWRSEOSA-O_1 | -7.88         |
+# | RYFVONWDPDPHHB-ZGCOHECXSA-O | RYFVONWDPDPHHB-ZGCOHECXSA-O_1 | -7.81         |
+# | NFHBDVKWICVFDQ-APDVVUBJSA-O | NFHBDVKWICVFDQ-APDVVUBJSA-O_1 | -7.81         |
+# | WERVHOCRXRNYBH-REISJJRISA-O | WERVHOCRXRNYBH-REISJJRISA-O_1 | -7.74         |
+# | PFZHGYDOQTZDPQ-HUPUPJIPSA-N | PFZHGYDOQTZDPQ-HUPUPJIPSA-N_1 | -7.72         |
+# | MMKPYJXQEXUYDH-OIBPPNFKSA-O | MMKPYJXQEXUYDH-OIBPPNFKSA-O_1 | -7.71         |
+# | LLSCRUHCEVGKSQ-XKHREPBBSA-O | LLSCRUHCEVGKSQ-XKHREPBBSA-O_1 | -7.7          |
+# | DOCNEKCJXXPFEZ-NVOBCCQGSA-O | DOCNEKCJXXPFEZ-NVOBCCQGSA-O_1 | -7.68         |
+# | DYRCPBZRUZAXIX-JKPVDXOUSA-O | DYRCPBZRUZAXIX-JKPVDXOUSA-O_1 | -7.67         |
+# | OMQWCNCSDAOYQS-OJPUXPQHSA-O | OMQWCNCSDAOYQS-OJPUXPQHSA-O_1 | -7.65         |
+# | GEGJOGATSOGXEP-CCVDMMCGSA-O | GEGJOGATSOGXEP-CCVDMMCGSA-O_1 | -7.65         |
+# | CPECBCLWZCCFIR-DWLBMTHHSA-O | CPECBCLWZCCFIR-DWLBMTHHSA-O_1 | -7.61         |
+# | JSATUSIYCVGCOF-GXCCJSRQSA-O | JSATUSIYCVGCOF-GXCCJSRQSA-O_1 | -7.61         |
+# | MSWGHHCHSHNSRS-JMRBFUEQSA-O | MSWGHHCHSHNSRS-JMRBFUEQSA-O_1 | -7.6          |
+# | UZLBPXKFEJTBJW-QAYYRARUSA-O | UZLBPXKFEJTBJW-QAYYRARUSA-O_1 | -7.6          |
+# | YQBRHEDHYQJPGY-NVOBCCQGSA-O | YQBRHEDHYQJPGY-NVOBCCQGSA-O_1 | -7.6          |
+# | KGFVBUCFAKEIIE-HXCDMFHQSA-O | KGFVBUCFAKEIIE-HXCDMFHQSA-O_1 | -7.59         |
+# | NQZUNDAQXMGKSL-XAWYSJHESA-O | NQZUNDAQXMGKSL-XAWYSJHESA-O_1 | -7.59         |
+# | QMUPQKJUACHEQD-OUCRSZIVSA-N | QMUPQKJUACHEQD-OUCRSZIVSA-N_1 | -7.58         |
+# | XBSZIXSVKWJTSD-OGPZQOLISA-O | XBSZIXSVKWJTSD-OGPZQOLISA-O_1 | -7.58         |
+# | ZLAUXDJLABCRDU-OURVLYCJSA-O | ZLAUXDJLABCRDU-OURVLYCJSA-O_1 | -7.57         |
+# | UGDNQIHMIAUMOF-LEEQTAOHSA-O | UGDNQIHMIAUMOF-LEEQTAOHSA-O_1 | -7.57         |
+# | SRXXWAWPFVBRME-HDKPYIOWSA-O | SRXXWAWPFVBRME-HDKPYIOWSA-O_1 | -7.57         |
+# | YWHRELYUHVGYPT-GLLYUYBOSA-O | YWHRELYUHVGYPT-GLLYUYBOSA-O_1 | -7.55         |
+# ...
+# | YGZRUQQIZMBSDD-XXEOEALZSA-O | YGZRUQQIZMBSDD-XXEOEALZSA-O_1 | -7.32         |
+# | DDCLCWAKUGQATH-KXZHXVJYSA-O | DDCLCWAKUGQATH-KXZHXVJYSA-O_1 | -7.32         |
+# | OXUZYRNVCOIXKL-ZGJBHGAESA-O | OXUZYRNVCOIXKL-ZGJBHGAESA-O_1 | -7.31         |
+# | PRKCCYOLKCDSCQ-LFCSLWFPSA-O | PRKCCYOLKCDSCQ-LFCSLWFPSA-O_1 | -7.3          |
+# | RBFWAFPREHYGNU-ZEMQAGKDSA-O | RBFWAFPREHYGNU-ZEMQAGKDSA-O_1 | -7.3          |
+# | DYYZDMIHWINFIF-PXDOLEPXSA-O | DYYZDMIHWINFIF-PXDOLEPXSA-O_1 | -7.3          |
+# | CCNSRCIALOOJHQ-IYNFVXDOSA-O | CCNSRCIALOOJHQ-IYNFVXDOSA-O_1 | -7.29         |
+# | FPMTZBSRRXATEP-KQFRVKRDSA-O | FPMTZBSRRXATEP-KQFRVKRDSA-O_1 | -7.29         |
+# | IJTFVGGDMZVVCY-NEJGVSAFSA-O | IJTFVGGDMZVVCY-NEJGVSAFSA-O_1 | -7.29         |
+# | JXDRXFUSYAZPDG-SGGLPICOSA-O | JXDRXFUSYAZPDG-SGGLPICOSA-O_1 | -7.28         |
+# | ABYYJZBHRQSKOH-SFBQEAGJSA-O | ABYYJZBHRQSKOH-SFBQEAGJSA-O_1 | -7.28         |
+# | YVYRLDPJKNDTKF-FRNNXQESSA-O | YVYRLDPJKNDTKF-FRNNXQESSA-O_1 | -7.28         |
+# | TZNGNDMWLRPWHC-AKVYSXHKSA-O | TZNGNDMWLRPWHC-AKVYSXHKSA-O_1 | -7.28         |
+# | MBRMELWIASNFDQ-BTXCHTAFSA-O | MBRMELWIASNFDQ-BTXCHTAFSA-O_1 | -7.27         |
+# | OIMCTJQEECQBCO-ZGJDELOYSA-O | OIMCTJQEECQBCO-ZGJDELOYSA-O_1 | -7.27         |
+```
+
+Create a table named 'top_100_CZP_binders' to store the top 100 compounds for further analysis
+
+```bash
+sqlite3 chemspace/processed_data/chemspace.db "ATTACH DATABASE 'docking/docking_assays/assay_6/assay_6.db' AS db2; CREATE TABLE top_100_CZP_binders AS SELECT * FROM candidates_for_docking WHERE inchi_key IN (SELECT LigName FROM db2.Results t2 ORDER BY docking_score ASC LIMIT 100); DETACH DATABASE db2"
+```
+
+Create a docking assay for 'top_100_CZP_binders' to repeat docking against the CZP refined receptor (to confirm reproducibility and isolate results)
+
+```python title="workshop.py"
+la_workshop_moldock.dock_table("top_100_CZP_binders",id_receptor_model=3,id_docking_params=2) # docking assay 7
+```
+
+Analyze the docking results for assay 7 (docking of _candidates_for_dockin_g to CZP refined receptor)
+
+```python title="workshop.py"
+la_workshop_docking_analysis.process_docking_assay(assay_id=7, max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+```
+
+Compute the MMPBSA fingerprints for assays 7 
+
+```python title="workshop.py"
+la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(assay_id=7,mmgbsa=1,prolif=0) # Input receptor field indexes when requested
+```
+
+Create a docking assay for 'top_100_CZP_binders' against the hCatL refined receptor
+
+```python title="workshop.py"
+la_workshop_moldock.dock_table("top_100_CZP_binders",id_receptor_model=4,id_docking_params=2) # docking assay 8
+```
+
+Analyze the docking results for assay 8 (docking of _top_100_CZP_binders_ table to hCatL refined receptor)
+
+```python title="workshop.py"
+la_workshop_docking_analysis.process_docking_assay(assay_id=8,max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+```
+
+Compute the MMPBSA fingerprints for assay 8 
+
+```python title="workshop.py"
+la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(assay_id=8,mmgbsa=1,prolif=0) # Input receptor field indexes when requested
+```
+
+Use SQL queries to combine results from both docking assays and search for candidate compounds with better docking scores to CZP than to hCatL
+
+``` bash
+sqlite3 -header -table docking/docking_assays/assay_7/assay_7.db "ATTACH DATABASE '/media/HD2/Trabajos-in-silico/la_workshop_9/docking/docking_assays/assay_8/assay_8.db' AS db2; SELECT t1.sub_pose, t1.docking_score AS CZP_ds, t2.delta_g_total AS CZP_d_g_tot, db2.Results.docking_score AS hCatL_ds, db2.mmgbsa_fingerprints.delta_g_total AS hCatL_d_g_tot, ROUND((t1.docking_score - db2.Results.docking_score),2) AS diff_dock_score, ROUND((t2.delta_g_total - db2.mmgbsa_fingerprints.delta_g_total),2) AS diff_d_g_tot FROM Results t1 JOIN mmgbsa_fingerprints t2 ON t1.LigName = t2.LigName JOIN db2.Results ON t1.LigName = db2.Results.LigName JOIN db2.mmgbsa_fingerprints ON t1.LigName = db2.mmgbsa_fingerprints.LigName ORDER BY diff_dock_score ASC LIMIT 10; DETACH DATABASE db2;"
+
+################
+### Outputs ####
+################
+# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
+# |           sub_pose            | CZP_ds | CZP_d_g_tot | hCatL_ds | hCatL_d_g_tot | diff_dock_score | diff_d_g_tot |
+# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
+# | CUFNDGFOXHNKKU-MGUYBSQASA-O_1 | -7.24  | -51.6476    | -5.85    | -39.9543      | -1.39           | -11.69       | # The cpd is exotic derived from non-specific AZ3 coupling reaction definition
+# | CYWLRULGWUKHND-QDRCWIAMSA-O_1 | -8.09  | -34.9057    | -6.73    | -29.0774      | -1.36           | -5.83        | # Ideal Cpds - bioactive conformation CZP and non bioactive hCatL
+# | TZCGFRFEIJJRGN-VKFROBJISA-N_1 | -7.44  | -49.0613    | -6.2     | -39.6637      | -1.24           | -9.4         | # Both bioactive poses, but CZP better binder
+# | GEGJOGATSOGXEP-CCVDMMCGSA-O_1 | -7.66  | -39.9591    | -6.48    | -38.7983      | -1.18           | -1.16        |
+# | IHRQBMNUDKYYTK-HUAVMZDFSA-N_1 | -7.28  | -51.4805    | -6.24    | -45.7701      | -1.04           | -5.71        |
+# | DDCLCWAKUGQATH-KXZHXVJYSA-O_1 | -7.49  | -42.1068    | -6.47    | -41.6397      | -1.02           | -0.47        |
+# | KHUSNQDEVMQYSO-GEKJTBGDSA-O_1 | -7.51  | -35.6408    | -6.59    | -36.5528      | -0.92           | 0.91         |
+# | AABZCBAGAYRJDZ-ROLKXXGCSA-N_1 | -8.19  | -38.4541    | -7.29    | -44.896       | -0.9            | 6.44         |
+# | MSWGHHCHSHNSRS-JMRBFUEQSA-O_1 | -7.6   | -48.8381    | -6.7     | -47.1861      | -0.9            | -1.65        |
+# | JXDRXFUSYAZPDG-SGGLPICOSA-O_1 | -7.29  | -49.5987    | -6.45    | -52.0911      | -0.84           | 2.49         |
+# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
+```
+
+Extract the per-residue computed fingerprints for the top candidate: CYWLRULGWUKHND-QDRCWIAMSA-O_1 with CZP, hCatL and K777 reference
+
+```bash
+sqlite3 docking/docking_assays/assay_7/assay_7.db "SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';" # Candidate bound to CZP
+
+sqlite3 docking/docking_assays/assay_8/assay_8.db "SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';" # Candidate bound to hCatL
+
+sqlite3 docking/docking_assays/assay_7/assay_7.db "SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';" # Candidate bound to CZP
+
+sqlite3 docking/docking_assays/assay_8/assay_8.db "SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';" # Candidate bound to hCatL
+
+sqlite3 docking/docking_assays/assay_2/assay_2.db "SELECT writefile('fp_K777-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';" # K777 bound to CZP
+
+sqlite3 docking/docking_assays/assay_4/assay_4.db "SELECT writefile('fp_K777-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';"  # K777 bound to hCatL
+```
+
 
 ### 5.3. 🎯 Selection of candidates for synthesis
 
