@@ -2,6 +2,8 @@
 title: 4. Evaluation of a training set
 ---
 
+<div style={{ textAlign: "justify" }}>
+
 Before performing large-scale virtual screening, it is essential to validate the docking workflow using a **well-characterized benchmark set**.  
 This allows verifying that the selected docking parameters, scoring functions, and receptor models can **reproduce experimental trends** and correctly discriminate between active and less active compounds.
 
@@ -13,6 +15,8 @@ Their design strategy consisted in **replacing the scissile amide bond** of pept
 For the purpose of this workshop, we will use this small but well-defined set as a **test set**. The goal is to evaluate whether our SBDD workflow can reproduce the **binding trends and relative affinities** observed experimentally, using the available crystallographic and biochemical data.
 
 While best practice in computational drug design recommends **larger and chemically diverse training/test sets**, this reduced dataset provides a **realistic and time-efficient framework** for validating the docking setup and analyzing performance under controlled conditions during this workshop.
+
+
 
 #### Test set
 
@@ -113,131 +117,170 @@ To execute the job, you may run from your terminal:
 Docking execution requires access to a local GPU board or a compatible GPU computing environment. If no GPU resources are available, these scripts cannot be executed, and docking should instead be run on a properly configured workstation or HPC cluster.
 :::
 
-###### Analysis
-
-Analyze the docking results for assay 5
+Let's post-process the docking assay as learned in the previous tutorial, including **pose extraction for visualization** and applying **three alternative ranking criteria** for hit selection: **docking score**, **cluster size**, and **MMGBSA**.
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.process_docking_assay(assay_id=5,max_poses=5, extract_poses=1) # Notice that we extract only 5 poses per molecule and save them a pdb file
+# Parse AutoDock outputs, keep top-5 poses per ligand and extract them as PDB
+la_workshop_docking_analysis.process_docking_assay(
+    assay_id=5,
+    max_poses=5,
+    extract_poses=1
+)
+
+# Computes ΔG estimates for each stored pose
+la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(
+    assay_id=5,
+    mmgbsa=1,
+    prolif=0
+)  # Provide receptor field indices if prompted
+
 ```
 
-Compute the MMPBSA fingerprints for assay 5 
-```python title="workshop.py"
-la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(assay_id=5,mmgbsa=1,prolif=0) # Input receptor field 
-```
+Now, for each ligand, we will extract the best pose according to three independent criteria, and compare which one most frequently corresponds to a bioactive conformation (as judged by visual inspection against the reference complex).
 
-Use SQL statement to extract the best pose per ligand based on MMGBSA total energy
+Use the following SQL statement to extract the best pose per ligand based on the **docking score**:
 
 ```bash
-sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db "SELECT LigName, sub_pose, delta_g_total FROM (SELECT LigName, sub_pose, delta_g_total, ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY delta_g_total ASC) as rn FROM mmgbsa_fingerprints) ranked WHERE rn = 1;"
-
-################
-### Outputs ####
-################
-# +-----------------------------+-------------------------------+---------------+
-# |           LigName           |           sub_pose            | delta_g_total |
-# +-----------------------------+-------------------------------+---------------+
-# | BFNJAXKMPJHXHW-DCFHFQCYSA-O | BFNJAXKMPJHXHW-DCFHFQCYSA-O_4 | -51.3374      | # NON-Bioactive conformation
-# | CLEDCFNOFQFOGX-KMRXNPHXSA-O | CLEDCFNOFQFOGX-KMRXNPHXSA-O_2 | -34.4763      | # Bioactive conformation
-# | CROWHGLIUOMOOH-SIBVEZHUSA-O | CROWHGLIUOMOOH-SIBVEZHUSA-O_2 | -34.6089      | # Bioactive conformation
-# | FSMFTHPDNIOSTO-FNZWTVRRSA-O | FSMFTHPDNIOSTO-FNZWTVRRSA-O_2 | -45.7016      | # NON-Bioactive conformation
-# | FTWLHZZOIPWOOS-IADCTJSHSA-O | FTWLHZZOIPWOOS-IADCTJSHSA-O_5 | -53.6438      | # NON-Bioactive conformation
-# | GFKPWKCDJBRXQK-DCFHFQCYSA-O | GFKPWKCDJBRXQK-DCFHFQCYSA-O_4 | -51.5091      | # NON-Bioactive conformation
-# | GJWDUYBKAOXWIS-ZTOMLWHTSA-O | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_1 | -50.1655      | # Bioactive conformation
-# | LCNNMCFKBKHPHV-DCFHFQCYSA-O | LCNNMCFKBKHPHV-DCFHFQCYSA-O_4 | -36.9908      | # NON-Bioactive conformation
-# | NRDAGRURPLJETJ-KMRXNPHXSA-O | NRDAGRURPLJETJ-KMRXNPHXSA-O_4 | -52.3813      | # NON-Bioactive conformation
-# | NXGQNXSIIMHEHD-NTFOOJQESA-O | NXGQNXSIIMHEHD-NTFOOJQESA-O_3 | -47.5815      | # NON-Bioactive conformation
-# | OQDQGSSUGQXEKZ-JHOBJCJYSA-O | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_4 | -52.5189      | # NON-Bioactive conformation
-# | PWQIDUKXKZPEMX-AUDOKZQXSA-O | PWQIDUKXKZPEMX-AUDOKZQXSA-O_4 | -38.6934      | # NON-Bioactive conformation
-# | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1 | -50.2251      | # Bioactive conformation
-# | RSSMYFQRFUEXTN-ZTOMLWHTSA-O | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_4 | -41.0921      | # NON-Bioactive conformation
-# | STUFFQIGUGGQAV-KMRXNPHXSA-O | STUFFQIGUGGQAV-KMRXNPHXSA-O_5 | -53.2883      | # NON-Bioactive conformation
-# | VCCYIWMCXDRTJQ-MMTVBGGISA-N | VCCYIWMCXDRTJQ-MMTVBGGISA-N_2 | -43.8118      | # NON-Bioactive conformation
-# | VHJLFUKKYWPYME-JHOBJCJYSA-N | VHJLFUKKYWPYME-JHOBJCJYSA-N_3 | -46.4965      | # NON-Bioactive conformation
-# | WWSWXUCLNZWXKO-IADCTJSHSA-O | WWSWXUCLNZWXKO-IADCTJSHSA-O_1 | -38.12        | # Bioactive conformation
-# | XBQOGPRXCCTYMI-IEWVHIKDSA-O | XBQOGPRXCCTYMI-IEWVHIKDSA-O_1 | -51.054       | # NON-Bioactive conformation
-# | XNOSHWKNNVMTIA-ZTOMLWHTSA-O | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_5 | -48.1715      | # NON-Bioactive conformation
-# | YXKHZYNSINIHQT-NGQVCNFZSA-O | YXKHZYNSINIHQT-NGQVCNFZSA-O_5 | -49.2022      | # NON-Bioactive conformation
-# | ZDDOCTLDSWCEMH-JHOBJCJYSA-O | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_2 | -40.3028      | # Bioactive conformation
-# | ZMTYWFIGVVVFSK-SIBVEZHUSA-N | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_4 | -41.9176      | # NON-Bioactive conformation
-# +-----------------------------+-------------------------------+---------------+
+sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db \
+"SELECT LigName, sub_pose, docking_score
+ FROM (
+   SELECT LigName, sub_pose, docking_score,
+          ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY docking_score ASC) AS rn
+   FROM Results
+ ) ranked
+ WHERE rn = 1;"
 ```
 
-Use SQL statement to extract the best pose per ligand based on the docked score
+<details>
+<summary> <b>Output based on docking score</b></summary>
+
+| **LigName**                     | **sub_pose**                    | **docking_score** | **Conformation**           |
+|---------------------------------|---------------------------------|------------------:|-----------------------------|
+| BFNJAXKMPJHXHW-DCFHFQCYSA-O     | BFNJAXKMPJHXHW-DCFHFQCYSA-O_1   | -5.23             | Bioactive                  |
+| CLEDCFNOFQFOGX-KMRXNPHXSA-O     | CLEDCFNOFQFOGX-KMRXNPHXSA-O_1   | -5.38             | Bioactive                  |
+| CROWHGLIUOMOOH-SIBVEZHUSA-O     | CROWHGLIUOMOOH-SIBVEZHUSA-O_1   | -5.74             | Non-bioactive              |
+| FSMFTHPDNIOSTO-FNZWTVRRSA-O     | FSMFTHPDNIOSTO-FNZWTVRRSA-O_1   | -4.31             | Bioactive                  |
+| FTWLHZZOIPWOOS-IADCTJSHSA-O     | FTWLHZZOIPWOOS-IADCTJSHSA-O_1   | -4.72             | Non-bioactive              |
+| GFKPWKCDJBRXQK-DCFHFQCYSA-O     | GFKPWKCDJBRXQK-DCFHFQCYSA-O_1   | -5.50             | Bioactive                  |
+| GJWDUYBKAOXWIS-ZTOMLWHTSA-O     | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_1   | -6.29             | Bioactive                  |
+| LCNNMCFKBKHPHV-DCFHFQCYSA-O     | LCNNMCFKBKHPHV-DCFHFQCYSA-O_1   | -5.31             | Non-bioactive              |
+| NRDAGRURPLJETJ-KMRXNPHXSA-O     | NRDAGRURPLJETJ-KMRXNPHXSA-O_1   | -5.75             | Bioactive                  |
+| NXGQNXSIIMHEHD-NTFOOJQESA-O     | NXGQNXSIIMHEHD-NTFOOJQESA-O_1   | -5.66             | Bioactive                  |
+| OQDQGSSUGQXEKZ-JHOBJCJYSA-O     | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_1   | -6.56             | Bioactive                  |
+| PWQIDUKXKZPEMX-AUDOKZQXSA-O     | PWQIDUKXKZPEMX-AUDOKZQXSA-O_1   | -7.36             | Bioactive                  |
+| RHJLQMVZXQKJKB-FPHSVDBKSA-N     | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1   | -5.43             | Bioactive                  |
+| RSSMYFQRFUEXTN-ZTOMLWHTSA-O     | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_1   | -5.71             | Non-bioactive              |
+| STUFFQIGUGGQAV-KMRXNPHXSA-O     | STUFFQIGUGGQAV-KMRXNPHXSA-O_1   | -5.26             | Bioactive                  |
+| VCCYIWMCXDRTJQ-MMTVBGGISA-N     | VCCYIWMCXDRTJQ-MMTVBGGISA-N_1   | -4.33             | Non-bioactive              |
+| VHJLFUKKYWPYME-JHOBJCJYSA-N     | VHJLFUKKYWPYME-JHOBJCJYSA-N_1   | -4.30             | Bioactive                  |
+| WWSWXUCLNZWXKO-IADCTJSHSA-O     | WWSWXUCLNZWXKO-IADCTJSHSA-O_1   | -5.93             | Bioactive                  |
+| XBQOGPRXCCTYMI-IEWVHIKDSA-O     | XBQOGPRXCCTYMI-IEWVHIKDSA-O_1   | -4.88             | Non-bioactive              |
+| XNOSHWKNNVMTIA-ZTOMLWHTSA-O     | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_1   | -5.67             | Non-bioactive              |
+| YXKHZYNSINIHQT-NGQVCNFZSA-O     | YXKHZYNSINIHQT-NGQVCNFZSA-O_1   | -6.00             | Bioactive                  |
+| ZDDOCTLDSWCEMH-JHOBJCJYSA-O     | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_1   | -6.28             | Non-bioactive              |
+| ZMTYWFIGVVVFSK-SIBVEZHUSA-N     | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_1   | -3.79             | Bioactive                  |
+
+</details>
+
+
+💡 Based on this benchmark, **docking scores successfully identified** the experimentally known bioactive conformations for roughly **65% of the ligands**.
+
+
+Now, use the SQL statement to extract the best pose per ligand based on the cluster size (larger = more frequently sampled).
 
 ```bash
-sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db "SELECT LigName, sub_pose, docking_score FROM (SELECT LigName, sub_pose, docking_score, ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY docking_score ASC) as rn FROM Results) ranked WHERE rn = 1;"
-
-################
-### Outputs ####
-################
-# +-----------------------------+-------------------------------+---------------+
-# |           LigName           |           sub_pose            | docking_score |
-# +-----------------------------+-------------------------------+---------------+
-# | BFNJAXKMPJHXHW-DCFHFQCYSA-O | BFNJAXKMPJHXHW-DCFHFQCYSA-O_1 | -5.23         | # Bioactive conformation
-# | CLEDCFNOFQFOGX-KMRXNPHXSA-O | CLEDCFNOFQFOGX-KMRXNPHXSA-O_1 | -5.38         | # Bioactive conformation
-# | CROWHGLIUOMOOH-SIBVEZHUSA-O | CROWHGLIUOMOOH-SIBVEZHUSA-O_1 | -5.74         | # NON-Bioactive conformation
-# | FSMFTHPDNIOSTO-FNZWTVRRSA-O | FSMFTHPDNIOSTO-FNZWTVRRSA-O_1 | -4.31         | # Bioactive conformation
-# | FTWLHZZOIPWOOS-IADCTJSHSA-O | FTWLHZZOIPWOOS-IADCTJSHSA-O_1 | -4.72         | # NON-Bioactive conformation
-# | GFKPWKCDJBRXQK-DCFHFQCYSA-O | GFKPWKCDJBRXQK-DCFHFQCYSA-O_1 | -5.5          | # Bioactive conformation
-# | GJWDUYBKAOXWIS-ZTOMLWHTSA-O | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_1 | -6.29         | # Bioactive conformation
-# | LCNNMCFKBKHPHV-DCFHFQCYSA-O | LCNNMCFKBKHPHV-DCFHFQCYSA-O_1 | -5.31         | # NON-Bioactive conformation
-# | NRDAGRURPLJETJ-KMRXNPHXSA-O | NRDAGRURPLJETJ-KMRXNPHXSA-O_1 | -5.75         | # Bioactive conformation
-# | NXGQNXSIIMHEHD-NTFOOJQESA-O | NXGQNXSIIMHEHD-NTFOOJQESA-O_1 | -5.66         | # Bioactive conformation
-# | OQDQGSSUGQXEKZ-JHOBJCJYSA-O | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_1 | -6.56         | # Bioactive conformation
-# | PWQIDUKXKZPEMX-AUDOKZQXSA-O | PWQIDUKXKZPEMX-AUDOKZQXSA-O_1 | -7.36         | # Bioactive conformation
-# | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1 | -5.43         | # Bioactive conformation
-# | RSSMYFQRFUEXTN-ZTOMLWHTSA-O | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_1 | -5.71         | # NON-Bioactive conformation
-# | STUFFQIGUGGQAV-KMRXNPHXSA-O | STUFFQIGUGGQAV-KMRXNPHXSA-O_1 | -5.26         | # Bioactive conformation
-# | VCCYIWMCXDRTJQ-MMTVBGGISA-N | VCCYIWMCXDRTJQ-MMTVBGGISA-N_1 | -4.33         | # NON-Bioactive conformation
-# | VHJLFUKKYWPYME-JHOBJCJYSA-N | VHJLFUKKYWPYME-JHOBJCJYSA-N_1 | -4.3          | # Bioactive conformation
-# | WWSWXUCLNZWXKO-IADCTJSHSA-O | WWSWXUCLNZWXKO-IADCTJSHSA-O_1 | -5.93         | # Bioactive conformation
-# | XBQOGPRXCCTYMI-IEWVHIKDSA-O | XBQOGPRXCCTYMI-IEWVHIKDSA-O_1 | -4.88         | # NON-Bioactive conformation
-# | XNOSHWKNNVMTIA-ZTOMLWHTSA-O | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_1 | -5.67         | # NON-Bioactive conformation
-# | YXKHZYNSINIHQT-NGQVCNFZSA-O | YXKHZYNSINIHQT-NGQVCNFZSA-O_1 | -6.0          | # Bioactive conformation
-# | ZDDOCTLDSWCEMH-JHOBJCJYSA-O | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_1 | -6.28         | # NON-Bioactive conformation
-# | ZMTYWFIGVVVFSK-SIBVEZHUSA-N | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_1 | -3.79         | # Bioactive conformation
-# +-----------------------------+-------------------------------+---------------+
+sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db \
+"SELECT LigName, sub_pose, cluster_size
+ FROM (
+   SELECT LigName, sub_pose, cluster_size,
+          ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY cluster_size DESC) AS rn
+   FROM Results
+ ) ranked
+ WHERE rn = 1;"
 ```
 
-Use SQL statement to extract the best pose per ligand based on the cluster size
+<details>
+<summary> <b>Output based on cluster size</b></summary>
+
+| **LigName**                     | **sub_pose**                    | **cluster_size** | **Conformation**           |
+|---------------------------------|---------------------------------|-----------------:|-----------------------------|
+| BFNJAXKMPJHXHW-DCFHFQCYSA-O     | BFNJAXKMPJHXHW-DCFHFQCYSA-O_4   | 11               | Non-bioactive              |
+| CLEDCFNOFQFOGX-KMRXNPHXSA-O     | CLEDCFNOFQFOGX-KMRXNPHXSA-O_1   | 18               | Bioactive                  |
+| CROWHGLIUOMOOH-SIBVEZHUSA-O     | CROWHGLIUOMOOH-SIBVEZHUSA-O_2   | 13               | Bioactive                  |
+| FSMFTHPDNIOSTO-FNZWTVRRSA-O     | FSMFTHPDNIOSTO-FNZWTVRRSA-O_3   | 24               | Non-bioactive              |
+| FTWLHZZOIPWOOS-IADCTJSHSA-O     | FTWLHZZOIPWOOS-IADCTJSHSA-O_2   | 6                | Non-bioactive              |
+| GFKPWKCDJBRXQK-DCFHFQCYSA-O     | GFKPWKCDJBRXQK-DCFHFQCYSA-O_2   | 22               | Non-bioactive              |
+| GJWDUYBKAOXWIS-ZTOMLWHTSA-O     | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_3   | 10               | Non-bioactive              |
+| LCNNMCFKBKHPHV-DCFHFQCYSA-O     | LCNNMCFKBKHPHV-DCFHFQCYSA-O_3   | 9                | Bioactive                  |
+| NRDAGRURPLJETJ-KMRXNPHXSA-O     | NRDAGRURPLJETJ-KMRXNPHXSA-O_2   | 18               | Non-bioactive              |
+| NXGQNXSIIMHEHD-NTFOOJQESA-O     | NXGQNXSIIMHEHD-NTFOOJQESA-O_2   | 21               | Non-bioactive              |
+| OQDQGSSUGQXEKZ-JHOBJCJYSA-O     | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_1   | 13               | Bioactive                  |
+| PWQIDUKXKZPEMX-AUDOKZQXSA-O     | PWQIDUKXKZPEMX-AUDOKZQXSA-O_1   | 26               | Bioactive                  |
+| RHJLQMVZXQKJKB-FPHSVDBKSA-N     | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1   | 28               | Bioactive                  |
+| RSSMYFQRFUEXTN-ZTOMLWHTSA-O     | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_1   | 15               | Non-bioactive              |
+| STUFFQIGUGGQAV-KMRXNPHXSA-O     | STUFFQIGUGGQAV-KMRXNPHXSA-O_2   | 17               | Non-bioactive              |
+| VCCYIWMCXDRTJQ-MMTVBGGISA-N     | VCCYIWMCXDRTJQ-MMTVBGGISA-N_4   | 19               | Non-bioactive              |
+| VHJLFUKKYWPYME-JHOBJCJYSA-N     | VHJLFUKKYWPYME-JHOBJCJYSA-N_4   | 18               | Non-bioactive              |
+| WWSWXUCLNZWXKO-IADCTJSHSA-O     | WWSWXUCLNZWXKO-IADCTJSHSA-O_1   | 9                | Bioactive                  |
+| XBQOGPRXCCTYMI-IEWVHIKDSA-O     | XBQOGPRXCCTYMI-IEWVHIKDSA-O_4   | 11               | Non-bioactive              |
+| XNOSHWKNNVMTIA-ZTOMLWHTSA-O     | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_2   | 16               | Bioactive                  |
+| YXKHZYNSINIHQT-NGQVCNFZSA-O     | YXKHZYNSINIHQT-NGQVCNFZSA-O_3   | 21               | Non-bioactive              |
+| ZDDOCTLDSWCEMH-JHOBJCJYSA-O     | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_2   | 12               | Bioactive                  |
+| ZMTYWFIGVVVFSK-SIBVEZHUSA-N     | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_5   | 8                | Non-bioactive              |
+</details>
+
+💡 When ranked by **cluster size**, **only about 39%** of the ligands were correctly associated with their experimentally known **bioactive conformations**.
+
+Next, explore a third ranking criterion based on MMGBSA binding free energies.
 
 ```bash
-sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db "SELECT LigName, sub_pose, cluster_size FROM (SELECT LigName, sub_pose, cluster_size, ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY cluster_size DESC) as rn FROM Results) ranked WHERE rn = 1;"
-
-################
-### Outputs ####
-################
-# +-----------------------------+-------------------------------+--------------+
-# |           LigName           |           sub_pose            | cluster_size |
-# +-----------------------------+-------------------------------+--------------+
-# | BFNJAXKMPJHXHW-DCFHFQCYSA-O | BFNJAXKMPJHXHW-DCFHFQCYSA-O_4 | 11           | # NON-Bioactive conformation
-# | CLEDCFNOFQFOGX-KMRXNPHXSA-O | CLEDCFNOFQFOGX-KMRXNPHXSA-O_1 | 18           | # Bioactive conformation
-# | CROWHGLIUOMOOH-SIBVEZHUSA-O | CROWHGLIUOMOOH-SIBVEZHUSA-O_2 | 13           | # Bioactive conformation
-# | FSMFTHPDNIOSTO-FNZWTVRRSA-O | FSMFTHPDNIOSTO-FNZWTVRRSA-O_3 | 24           | # NON-Bioactive conformation
-# | FTWLHZZOIPWOOS-IADCTJSHSA-O | FTWLHZZOIPWOOS-IADCTJSHSA-O_2 | 6            | # NON-Bioactive conformation
-# | GFKPWKCDJBRXQK-DCFHFQCYSA-O | GFKPWKCDJBRXQK-DCFHFQCYSA-O_2 | 22           | # NON-Bioactive conformation
-# | GJWDUYBKAOXWIS-ZTOMLWHTSA-O | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_3 | 10           | # NON-Bioactive conformation
-# | LCNNMCFKBKHPHV-DCFHFQCYSA-O | LCNNMCFKBKHPHV-DCFHFQCYSA-O_3 | 9            | # Bioactive conformation
-# | NRDAGRURPLJETJ-KMRXNPHXSA-O | NRDAGRURPLJETJ-KMRXNPHXSA-O_2 | 18           | # NON-Bioactive conformation
-# | NXGQNXSIIMHEHD-NTFOOJQESA-O | NXGQNXSIIMHEHD-NTFOOJQESA-O_2 | 21           | # NON-Bioactive conformation
-# | OQDQGSSUGQXEKZ-JHOBJCJYSA-O | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_1 | 13           | # Bioactive conformation 
-# | PWQIDUKXKZPEMX-AUDOKZQXSA-O | PWQIDUKXKZPEMX-AUDOKZQXSA-O_1 | 26           | # Bioactive conformation
-# | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1 | 28           | # Bioactive conformation
-# | RSSMYFQRFUEXTN-ZTOMLWHTSA-O | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_1 | 15           | # NON-Bioactive conformation
-# | STUFFQIGUGGQAV-KMRXNPHXSA-O | STUFFQIGUGGQAV-KMRXNPHXSA-O_2 | 17           | # NON-Bioactive conformation
-# | VCCYIWMCXDRTJQ-MMTVBGGISA-N | VCCYIWMCXDRTJQ-MMTVBGGISA-N_4 | 19           | # NON-Bioactive conformation
-# | VHJLFUKKYWPYME-JHOBJCJYSA-N | VHJLFUKKYWPYME-JHOBJCJYSA-N_4 | 18           | # NON-Bioactive conformation
-# | WWSWXUCLNZWXKO-IADCTJSHSA-O | WWSWXUCLNZWXKO-IADCTJSHSA-O_1 | 9            | # Bioactive conformation
-# | XBQOGPRXCCTYMI-IEWVHIKDSA-O | XBQOGPRXCCTYMI-IEWVHIKDSA-O_4 | 11           | # NON-Bioactive conformation
-# | XNOSHWKNNVMTIA-ZTOMLWHTSA-O | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_2 | 16           | # Bioactive conformation
-# | YXKHZYNSINIHQT-NGQVCNFZSA-O | YXKHZYNSINIHQT-NGQVCNFZSA-O_3 | 21           | # NON-Bioactive conformation
-# | ZDDOCTLDSWCEMH-JHOBJCJYSA-O | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_2 | 12           | # Bioactive conformation
-# | ZMTYWFIGVVVFSK-SIBVEZHUSA-N | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_5 | 8            | # NON-Bioactive conformation
-# +-----------------------------+-------------------------------+--------------+
+sqlite3 -header -table docking/docking_assays/assay_5/assay_5.db \
+"SELECT LigName, sub_pose, delta_g_total
+ FROM (
+   SELECT LigName, sub_pose, delta_g_total,
+          ROW_NUMBER() OVER (PARTITION BY LigName ORDER BY delta_g_total ASC) AS rn
+   FROM mmgbsa_fingerprints
+ ) ranked
+ WHERE rn = 1;"
 ```
 
-Conclusion:
+<details>
+<summary> <b>Output based on MMGBSA total energy</b></summary>
+| **LigName**                     | **sub_pose**                    | **delta_g_total** | **Conformation**           |
+|---------------------------------|---------------------------------|------------------:|-----------------------------|
+| BFNJAXKMPJHXHW-DCFHFQCYSA-O     | BFNJAXKMPJHXHW-DCFHFQCYSA-O_4   | -51.3374          | Non-bioactive              |
+| CLEDCFNOFQFOGX-KMRXNPHXSA-O     | CLEDCFNOFQFOGX-KMRXNPHXSA-O_2   | -34.4763          | Bioactive                  |
+| CROWHGLIUOMOOH-SIBVEZHUSA-O     | CROWHGLIUOMOOH-SIBVEZHUSA-O_2   | -34.6089          | Bioactive                  |
+| FSMFTHPDNIOSTO-FNZWTVRRSA-O     | FSMFTHPDNIOSTO-FNZWTVRRSA-O_2   | -45.7016          | Non-bioactive              |
+| FTWLHZZOIPWOOS-IADCTJSHSA-O     | FTWLHZZOIPWOOS-IADCTJSHSA-O_5   | -53.6438          | Non-bioactive              |
+| GFKPWKCDJBRXQK-DCFHFQCYSA-O     | GFKPWKCDJBRXQK-DCFHFQCYSA-O_4   | -51.5091          | Non-bioactive              |
+| GJWDUYBKAOXWIS-ZTOMLWHTSA-O     | GJWDUYBKAOXWIS-ZTOMLWHTSA-O_1   | -50.1655          | Bioactive                  |
+| LCNNMCFKBKHPHV-DCFHFQCYSA-O     | LCNNMCFKBKHPHV-DCFHFQCYSA-O_4   | -36.9908          | Non-bioactive              |
+| NRDAGRURPLJETJ-KMRXNPHXSA-O     | NRDAGRURPLJETJ-KMRXNPHXSA-O_4   | -52.3813          | Non-bioactive              |
+| NXGQNXSIIMHEHD-NTFOOJQESA-O     | NXGQNXSIIMHEHD-NTFOOJQESA-O_3   | -47.5815          | Non-bioactive              |
+| OQDQGSSUGQXEKZ-JHOBJCJYSA-O     | OQDQGSSUGQXEKZ-JHOBJCJYSA-O_4   | -52.5189          | Non-bioactive              |
+| PWQIDUKXKZPEMX-AUDOKZQXSA-O     | PWQIDUKXKZPEMX-AUDOKZQXSA-O_4   | -38.6934          | Non-bioactive              |
+| RHJLQMVZXQKJKB-FPHSVDBKSA-N     | RHJLQMVZXQKJKB-FPHSVDBKSA-N_1   | -50.2251          | Bioactive                  |
+| RSSMYFQRFUEXTN-ZTOMLWHTSA-O     | RSSMYFQRFUEXTN-ZTOMLWHTSA-O_4   | -41.0921          | Non-bioactive              |
+| STUFFQIGUGGQAV-KMRXNPHXSA-O     | STUFFQIGUGGQAV-KMRXNPHXSA-O_5   | -53.2883          | Non-bioactive              |
+| VCCYIWMCXDRTJQ-MMTVBGGISA-N     | VCCYIWMCXDRTJQ-MMTVBGGISA-N_2   | -43.8118          | Non-bioactive              |
+| VHJLFUKKYWPYME-JHOBJCJYSA-N     | VHJLFUKKYWPYME-JHOBJCJYSA-N_3   | -46.4965          | Non-bioactive              |
+| WWSWXUCLNZWXKO-IADCTJSHSA-O     | WWSWXUCLNZWXKO-IADCTJSHSA-O_1   | -38.1200          | Bioactive                  |
+| XBQOGPRXCCTYMI-IEWVHIKDSA-O     | XBQOGPRXCCTYMI-IEWVHIKDSA-O_1   | -51.0540          | Non-bioactive              |
+| XNOSHWKNNVMTIA-ZTOMLWHTSA-O     | XNOSHWKNNVMTIA-ZTOMLWHTSA-O_5   | -48.1715          | Non-bioactive              |
+| YXKHZYNSINIHQT-NGQVCNFZSA-O     | YXKHZYNSINIHQT-NGQVCNFZSA-O_5   | -49.2022          | Non-bioactive              |
+| ZDDOCTLDSWCEMH-JHOBJCJYSA-O     | ZDDOCTLDSWCEMH-JHOBJCJYSA-O_2   | -40.3028          | Bioactive                  |
+| ZMTYWFIGVVVFSK-SIBVEZHUSA-N     | ZMTYWFIGVVVFSK-SIBVEZHUSA-N_4   | -41.9176          | Non-bioactive              |
+</details>
+
+💡 When ranked by **MMGBSA total energies**, **only 6 out of 23 ligands (~26%) matched their experimentally known bioactive conformations**; the lowest success rate among the three criteria tested.
 
 
-###### hCatL
+:::note[📊 Comparative interpretation]
+
+Across both validation stages (the single-ligand K777 benchmark and the broader training set analysis) the docking score consistently emerged as the most reliable ranking criterion for identifying bioactive conformations. While cluster size offered limited correlation with biological relevance (≈39% accuracy) and MMGBSA refinements further reduced predictive performance (≈26%), the docking energy values successfully reproduced known binding modes in approximately two-thirds of the cases.
+
+Together, these results suggest that, within the current setup and receptor parametrization, docking scores provide the most robust first-level filter for pose selection and hit identification, whereas MMGBSA or cluster-based refinements may serve as complementary but not decisive tools for subsequent energetic or stability assessments.
+:::
+
+</div>

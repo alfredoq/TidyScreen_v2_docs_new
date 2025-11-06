@@ -1,6 +1,7 @@
 ---
 title: 1. Design of Targeted Covalent Inhibitors (TCIs) targeting Cruzipain
 ---
+<div style={{ textAlign: "justify" }}>
 
 ## Chagas Disease: A Neglected Global Challenge
 
@@ -15,13 +16,13 @@ Chagas disease (CD), also known as American trypanosomiasis, is a potentially li
 </figure>
 ---
 
-Although significant efforts have been devoted to drug discovery for CD, **only two nonspecific agents** developed nearly five decades ago — **nifurtimox** (1940) and **benznidazole** (1974) - remain the sole treatment options. While both drugs are effective against the acute stage, their severe adverse effects and limited efficacy in chronic infection restrict their use, leading to poor adherence and the emergence of resistance.
+Although significant efforts have been devoted to drug discovery for CD, **only two nonspecific agents** developed nearly five decades ago - **nifurtimox** (1940) and **benznidazole** (1974) - remain the sole treatment options. While both drugs are effective against the acute stage, their severe adverse effects and limited efficacy in chronic infection restrict their use, leading to poor adherence and the emergence of resistance.
 
 ## Cruzipain (CZP): A Key Druggable Target
 
 By the late 1970s, a family of cysteine proteases was identified as essential to the *T. cruzi* life cycle. Among them, **Cruzipain** (CZP), characterized by Cazzulo and colleagues, emerged as the predominant enzyme and a key druggable target. Beyond its role in parasite nutrition, CZP participates in metacyclogenesis and contributes to host cell invasion and virulence.
 
-Structurally, CZP’s catalytic domain comprises 215 amino acids forming α-helices and antiparallel β-sheets arranged into two subdomains that define the active site. This site contains a **catalytic triad (Cys25, His162, Asn182)** responsible for hydrolysis and **four binding subsites (S1′, S1, S2, and S3)** that dictate substrate and inhibitor recognition. Extensive structure–activity relationship (SAR) studies have elucidated the distinct roles of these subsites in ligand binding and specificity.
+Structurally, CZP’s catalytic domain comprises 215 amino acids forming α-helices and antiparallel β-sheets arranged into two subdomains that define the active site. This site contains a **catalytic triad (Cys25, His162, Asn182)** responsible for hydrolysis and **four binding subsites (S1′, S1, S2, and S3)** that dictate substrate and inhibitor recognition. Extensive structure-activity relationship (SAR) studies have elucidated the distinct roles of these subsites in ligand binding and specificity.
 
 ---
 <figure>
@@ -34,7 +35,7 @@ Structurally, CZP’s catalytic domain comprises 215 amino acids forming α-heli
 
 A wide variety of compounds have been reported as CZP inhibitors, ranging from natural peptides to synthetic small molecules identified through drug repurposing and de novo design. These inhibitors act through either **non-covalent or covalent mechanisms**. 
 
-- **Non-covalent inhibitors** interact reversibly within the active site, governed by an equilibrium constant (Ki), forming an energetically favourable enzyme–inhibitor encounter complex. 
+- **Non-covalent inhibitors** interact reversibly within the active site, governed by an equilibrium constant (Ki), forming an energetically favourable enzyme-inhibitor encounter complex. 
 - **Covalent inhibitors** incorporate a reactive warhead (WH) designed to form a chemical bond with the nucleophilic catalytic residue Cys25. The initial non-covalent recognition ensures proper WH orientation before covalent bond formation, characterized by a rate constant (k<sub>inact</sub>). When this bond formation is irreversible, inhibition is permanent; if reversible, both rate constants are comparable, leading to a dynamic equilibrium. 
 
 Covalent inhibitors can achieve greater potency and longer duration of action but often raise safety concerns due to potential off-target reactivity. Such limitations can be mitigated by improving target selectivity and using WHs of controlled reactivity. This gave rise to **Targeted Covalent Inhibitors (TCIs)**, compounds bearing a reactive moiety specifically designed to form a covalent bond with a defined residue of the intended target, thereby ensuring potency with minimal off-target effects. Although their design requires sophisticated computational and structural approaches, several TCIs have successfully reached clinical use, validating this concept.
@@ -87,3 +88,5 @@ Future development of **selective, non-peptidic TCIs** should focus on:
 - Achieving precise control over **WH reactivity** toward Cys25  
 
 This balanced design is essential to maximize **potency** and **selectivity**, minimize **off-target effects**, and overcome the **poor bioavailability** and **metabolic instability** typically associated with peptide-based inhibitors.  
+
+</div>

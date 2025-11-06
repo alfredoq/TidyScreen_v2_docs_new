@@ -2,6 +2,7 @@
 title: 3. Receptor modeling and validation
 ---
 
+<div style={{ textAlign: "justify" }}>
 Before moving on to large-scale virtual screening, it is essential to validate the docking conditions on a trusted reference system. In this section, we will **prepare and import the receptor structures** used throughout the workshop, and perform a **validation docking experiment** using *K777* as reference.
 
 ---
@@ -15,6 +16,7 @@ Therefore, the first step is to **process and clean** the raw crystal structure 
 Let's process the CZP crystal structure as a first example
 
 We will use the CZP crystal structure with PDB code **2OZ2**, which is bound to **K777**. To retrieve the structure, execute the following commands in a bash terminal:
+
 
 ```bash
 # Retrieve a structure corresponding to CZP
@@ -70,6 +72,8 @@ To define these grids, we need to specify the dimensions of the box:
 
 These values determine the volume within which the ligand can move and bind.
 
+
+
 ```python title="workshop.py"
 from tidyscreen import tidyscreen as ts
 from tidyscreen.moldock import moldock as md
@@ -89,9 +93,10 @@ la_workshop_moldock.process_raw_pdb(
 )
 ```
 
+
 Upon successful processing, the following files will be automatically created:
 
-`/PATH/TO/PROJECT/docking/raw_data/2OZ2/ligand_reference.pdb` 
+`/PATH/TO/PROJECT/docking/raw_data/2OZ2/ligand_reference.pdb`   
 `/PATH/TO/PROJECT/docking/raw_data/2OZ2/receptor.mol2`  
 `/PATH/TO/PROJECT/docking/raw_data/2OZ2/receptor.pdbqt`  
 
@@ -111,6 +116,7 @@ AutoDock4 does not calculate binding interactions on the fly; instead, it precom
 
 To compute the corresponding grid maps, navigate to your receptor directory and execute:
 
+
 ```bash
 $ cd /PATH/TO/PROJECT/docking/raw_data/2OZ2/
 $ autogrid4 -p receptor.gpf -l receptor.glg
@@ -125,7 +131,7 @@ If you modify the grid box size or center, remember to regenerate these maps bef
 
 <figure>
   <p align="center">
-  <img src="/TidyScreen_v2_docs_new/img/docking_grids.png" alt="AutoDock4 grid maps and docking box on Cruzipain catalytic site" width="400"/>
+  <img src="/TidyScreen_v2_docs_new/img/docking_grids.png" alt="AutoDock4 grid maps and docking box on CZP catalytic site" width="400"/>
   <figcaption>
   Visualization of the AutoDock4 grid maps. Colored mesh surfaces represent specific energy maps (OA=white, HD=iceblue, electrostatics=orange), precomputed within the 3D grid box used during docking simulations.
   </figcaption>
@@ -332,6 +338,8 @@ sqlite3 -header -table docking/docking_assays/assay_1/assay_1.db \
 
 Despite producing a reasonable number of clusters, the top-ranked pose (-4.94 kcal.mol<sup>-1</sup>) does not reproduce the experimental binding mode observed in the crystal. When visualized, the ligand often appears misoriented with respect to the crystallographic pose, with its warhead shifted away from the catalytic cysteine.
 
+#################### FIGURE OF DOCKING POSE vs REF? ####################
+
 In this case, the receptor derived directly from the crystal was used “as is,” without prior optimization, resulting in a non-productive binding mode for K777. 
 
 So that, next we will repeat this same redocking using the refined CZP receptor, which was previously equilibrated via molecular dynamics, and confirm that the predicted pose now matches the crystal orientation of K777.
@@ -366,7 +374,11 @@ sqlite3 -header -table docking/docking_assays/assay_2/assay_2.db \
 | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_10 | 2  | -4.28 |
 
 
-Unlike the previous case, the top-ranked pose (-5.42 kcal.mol<sup>-1</sup>) now reproduces the experimental binding mode of K777 with excellent geometric accuracy. This improved fit reflects the enhanced flexibility and energetic realism of the refined receptor, which allows the pocket to adapt to the inhibitor and minimizes steric strain. This result validates both the receptor preparation pipeline and the docking parameters, confirming that the workflow can be safely applied to screen new ligands.
+Unlike the previous case, the top-ranked pose (-5.42 kcal.mol<sup>-1</sup>) now reproduces the experimental binding mode of K777 with excellent geometric accuracy. 
+
+#################### FIGURE OF DOCKING POSE vs REF? ####################
+
+This improved fit reflects the enhanced flexibility and energetic realism of the refined receptor, which allows the pocket to adapt to the inhibitor and minimizes steric strain. This result validates both the receptor preparation pipeline and the docking parameters, confirming that the workflow can be safely applied to screen new ligands.
 
 #### Cross-docking validation on human Cathepsin L (hCatL)
 
@@ -401,7 +413,11 @@ sqlite3 -header -table docking/docking_assays/assay_3/assay_3.db \
 | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_10 | 3  | -0.75 |
 
 
-In this case, the top-scoring poses (≈ -4.0 kcal.mol<sup>-1</sup>) failed to reproduce the experimental covalent binding orientation of K777. This mismatch likely may reflect the rigid conformation of the crystal structure, which was obtained with a covalently bound inhibitor, thus restricting access to the catalytic cleft for non-covalent docking.
+In this case, the top-scoring poses (≈ -4.0 kcal.mol<sup>-1</sup>) failed to reproduce the experimental covalent binding orientation of K777. 
+
+#################### FIGURE OF DOCKING POSE vs REF? ####################
+
+This mismatch likely may reflect the rigid conformation of the crystal structure, which was obtained with a covalently bound inhibitor, thus restricting access to the catalytic cleft for non-covalent docking.
 
 * Docking using the refined hCatL structure 
 
@@ -432,7 +448,11 @@ sqlite3 -header -table docking/docking_assays/assay_4/assay_4.db \
 | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_9  | 4  | -3.98 |
 | RHJLQMVZXQKJKB-FPHSVDBKSA-N | RHJLQMVZXQKJKB-FPHSVDBKSA-N_10 | 2  | -3.97 |
 
-The best pose (-5.17 kcal.mol<sup>-1</sup>) successfully reproduced the experimental covalent orientation. The improvement observed after receptor refinement highlights how structural relaxation enhances the accuracy of docking simulations. The refined hCatL pocket allowed better accommodation of K777, maintaining the proper orientation of the vinyl sulfone warhead and hydrogen-bonding pattern characteristic of the experimental complex.
+The best pose (-5.17 kcal.mol<sup>-1</sup>) successfully reproduced the experimental covalent orientation. 
+
+#################### FIGURE OF DOCKING POSE vs REF? ####################
+
+The improvement observed after receptor refinement highlights how structural relaxation enhances the accuracy of docking simulations. The refined hCatL pocket allowed better accommodation of K777, maintaining the proper orientation of the vinyl sulfone warhead and hydrogen-bonding pattern characteristic of the experimental complex.
 
 Together with the results obtained for CZP, these findings confirm that receptor models 3 (CZP) and 4 (hCatL) offer the best compromise between structural realism and computational tractability, and will be used in the subsequent large-scale virtual screening.
 
@@ -498,12 +518,12 @@ sqlite3 -header -table docking/docking_assays/assay_4/assay_4.db \
 Unlike for CZP, the experimental reference pose (-43.64 kcal.mol<sup>-1</sup>) is not the most stable one according to MMGBSA.
 
 These results illustrate a critical aspect for our project:
-* For Cruzipain (CZP), the most negative docking score and the most stable MMGBSA energy coincide; both correspond to the bioactive conformation observed experimentally.
+* For CZP, the most negative docking score and the most stable MMGBSA energy coincide; both correspond to the bioactive conformation observed experimentally.
 * For hCatL, however, MMGBSA ranking suggests slightly more favorable alternative poses that do not match the crystallographic orientation.
 
 This discrepancy reflects that while MMGBSA provides a more detailed energetic profile, it is still dependent on the initial docking geometry and receptor conformation. In this context, prioritizing docking scores may be a more reliable first criterion for hit identification, at least within this small validation set. However, the relative reliability of docking versus MMGBSA can vary depending on the target flexibility, ligand series, and parameterization, etc.
 
-Importantly, the MMGBSA values obtained here can serve as useful reference benchmarks for future comparisons, particularly when analyzing larger or chemically diverse ligand libraries.
+Importantly, the MMGBSA values obtained here, together with the 6.6 kcal.mol<sup>-1</sup> energy difference observed between the encounter complexes of each system, can serve as useful reference benchmarks for future comparisons, particularly when analyzing larger or chemically diverse ligand libraries.
 
 A more statistically robust conclusion requires performing this workflow on a broader, chemically diverse dataset, which will be explored in the **next tutorial** on expanded training/test sets and pose validation pipelines.
 
@@ -522,3 +542,4 @@ At the end of this tutorial, you should be able to:
 ✅ **Compute MMGBSA energies** to refine binding affinity predictions and compare pose stabilities.  
 ✅ **Interpret results**, recognizing when each metric is most reliable.  
 :::
+</div>
