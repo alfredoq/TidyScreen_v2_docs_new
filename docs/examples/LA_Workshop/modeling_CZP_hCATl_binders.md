@@ -91,11 +91,11 @@ la_workshop_moldock.process_raw_pdb(
 
 Upon successful processing, the following files will be automatically created:
 
-`/PATH/TO/PROJECT/docking/raw_data/2OZ2/D1R.pdb` ###Fredy, esto es así?  
+`/PATH/TO/PROJECT/docking/raw_data/2OZ2/ligand_reference.pdb` 
 `/PATH/TO/PROJECT/docking/raw_data/2OZ2/receptor.mol2`  
 `/PATH/TO/PROJECT/docking/raw_data/2OZ2/receptor.pdbqt`  
 
-In addition to the crystallographic binding pose of K777 (`D1R.pdb`), you get the cleaned, ready-to-dock receptor models compatible with AutoDock4. The `.mol2` file retains atom typing and bonding information, while the `.pdbqt` file will be used in all docking simulations.
+In addition to the crystallographic binding pose of K777 (`ligand_reference.pdb`), you get the cleaned, ready-to-dock receptor models compatible with AutoDock4. The `.mol2` file retains atom typing and bonding information, while the `.pdbqt` file will be used in all docking simulations.
 
 :::tip[💡 Tip]
 Always inspect the generated receptor visually (for instance using **VMD**, **PyMOL** or **UCSF Chimera**) to confirm that the structure is well-prepared.
