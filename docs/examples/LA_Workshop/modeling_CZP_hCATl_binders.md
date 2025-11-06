@@ -133,7 +133,7 @@ If you modify the grid box size or center, remember to regenerate these maps bef
 </figure>
 
 
-You should now have a fully prepared receptor folder similar to the one provided [here](/downloads/2OZ2.zip) (Right-click and save if you wish to explore the precomputed files). ###Fredy, se me descargan archivos vacíos.
+You should now have a fully prepared receptor folder similar to the one provided [here](/downloads/2OZ2.zip) (Right-click and save if you wish to explore the precomputed files). 
 
 
 ## 3️⃣ Import precomputed receptor models into TidyScreen
@@ -165,7 +165,6 @@ la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/8hfv")
 la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/CZP_refined")
 la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/hCatL_refined")
 ```
-###Fredy, los tres archivos vacíos.
 
 Each receptor will be automatically indexed and stored in the project database, ready to be selected during docking setup.
 
