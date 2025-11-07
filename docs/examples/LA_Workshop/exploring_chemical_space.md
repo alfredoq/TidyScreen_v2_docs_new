@@ -807,6 +807,15 @@ However, upon visual inspection, we identified a critical issue: this compound w
 
 #################### FIGURE 2D ####################
 
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/CUFNDGFOXHNKKU-MGUYBSQASA-O.png" alt="Description of image" width="400"/>
+  <figcaption>Chemical structure of candidate 'CUFNDGFOXHNKKU-MGUYBSQASA-O'. </figcaption>
+  </p>
+</figure>
+---
+
 Specifically, the nitrile group of the amine derivative (R<sup>3</sup>) was spuriously used as the reacting atom during the A3 coupling step. This misreaction originated from an overly permissive SMARTS pattern of the N in the reaction definition:
 
 `la_workshop_cs.add_smarts_reaction("[N:1].[CX3H1:2](=[O:3])>>[NX4+:1][C@H:2][C:4]#[C:5]", "A3 coupling")`
@@ -826,10 +835,42 @@ Nevertheless, visual inspection suggests this is likely the ideal outcome:
 
 #################### FIGURE(s) 3D in both targets vs K777 ####################
 
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O.png" alt="Description of image" width="400"/>
+  <figcaption>Chemical structure of candidate 'CYWLRULGWUKHND-QDRCWIAMSA-O'. </figcaption>
+  </p>
+</figure>
+---
+
+
+<div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '20px'}}>
+  <figure style={{textAlign: 'center', flex: 1}}>
+    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CZP.png" alt="CZP fingerprint" width="300"/>
+    <figcaption><b>CZP fingerprint</b></figcaption>
+  </figure>
+  <figure style={{textAlign: 'center', flex: 1}}>
+    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CatL.png" alt="hCatL fingerprint" width="400"/>
+    <figcaption><b>hCatL fingerprint</b></figcaption>
+  </figure>
+</div>
+
+
+
 3. **TZCGFRFEIJJRGN-VKFROBJISA-N**
 
 In this case, all indicators are favorable: both the docking score and MMGBSA ΔG values are improved for CZP relative to hCatL, and the absolute ΔG values are comparable to those obtained for K777.
 Visual inspection further supports this observation: the compound adopts bioactive-like poses in both targets, properly aligned for potential covalent inhibition.
+
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N.png" alt="Description of image" width="400"/>
+  <figcaption>Chemical structure of candidate 'TZCGFRFEIJJRGN-VKFROBJISA-N'. </figcaption>
+  </p>
+</figure>
+---
 
 #################### FIGURE(s) 3D in both targets vs K777 ####################
 
