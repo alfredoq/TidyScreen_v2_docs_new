@@ -93,7 +93,6 @@ la_workshop_moldock.process_raw_pdb(
 )
 ```
 
-
 Upon successful processing, the following files will be automatically created:
 
 `/PATH/TO/PROJECT/docking/raw_data/2OZ2/ligand_reference.pdb`   
@@ -107,7 +106,7 @@ Always inspect the generated receptor visually (for instance using **VMD**, **Py
 :::
 
 
-## 2️⃣ Compute AutoDock4 grid files
+## 2️⃣ Compute AutoGrid4 grid files
 
 Once the receptor has been properly cleaned and converted into **AutoDock4-compatible formats**,  
 the next step is to generate the **grid maps** with `autogrid4`. These define how the docking algorithm evaluates ligand-receptor interactions within the specified grid box.
@@ -143,6 +142,7 @@ You should now have a fully prepared receptor folder similar to the one provided
 
 
 ## 3️⃣ Import precomputed receptor models into TidyScreen
+
 
 In some cases, receptor preparation might have been performed outside of TidyScreen to generate all required files (`.pdbqt`, `.gpf`, `.map`, `.glg`, etc.). Instead of repeating those steps, you can **directly import the complete receptor folder** into your active TidyScreen project. This integrates the receptor into the project’s internal database and makes it immediately available for docking assays.
 
@@ -338,7 +338,15 @@ sqlite3 -header -table docking/docking_assays/assay_1/assay_1.db \
 
 Despite producing a reasonable number of clusters, the top-ranked pose (-4.94 kcal.mol<sup>-1</sup>) does not reproduce the experimental binding mode observed in the crystal. When visualized, the ligand often appears misoriented with respect to the crystallographic pose, with its warhead shifted away from the catalytic cysteine.
 
-#################### FIGURE OF DOCKING POSE vs REF? ####################
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/K777_Rx_ref_vs_docked.png" alt="Description of image" width="400"/>
+  <figcaption>Licore: Crystallographic reference of K777; CPK: lowest energy docked pose. </figcaption>
+  </p>
+</figure>
+---
+
 
 In this case, the receptor derived directly from the crystal was used “as is,” without prior optimization, resulting in a non-productive binding mode for K777. 
 
@@ -346,7 +354,7 @@ So that, next we will repeat this same redocking using the refined CZP receptor,
 
 
 ```python title="workshop.py"
-la_workshop_moldock.dock_table(table_name="K777", id_receptor_model=1, id_docking_params=2)
+la_workshop_moldock.dock_table(table_name="K777", id_receptor_model=3, id_docking_params=2)
 
 la_workshop_docking_analysis.process_docking_assay(assay_id=2, max_poses=10, extract_poses=1)
 ```
@@ -376,7 +384,15 @@ sqlite3 -header -table docking/docking_assays/assay_2/assay_2.db \
 
 Unlike the previous case, the top-ranked pose (-5.42 kcal.mol<sup>-1</sup>) now reproduces the experimental binding mode of K777 with excellent geometric accuracy. 
 
-#################### FIGURE OF DOCKING POSE vs REF? ####################
+
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/K777_refiend_vs_docked.png" alt="Description of image" width="400"/>
+  <figcaption>Licore: Crystallographic reference of K777; CPK: lowest energy docked pose. </figcaption>
+  </p>
+</figure>
+---
 
 This improved fit reflects the enhanced flexibility and energetic realism of the refined receptor, which allows the pocket to adapt to the inhibitor and minimizes steric strain. This result validates both the receptor preparation pipeline and the docking parameters, confirming that the workflow can be safely applied to screen new ligands.
 
@@ -415,7 +431,14 @@ sqlite3 -header -table docking/docking_assays/assay_3/assay_3.db \
 
 In this case, the top-scoring poses (≈ -4.0 kcal.mol<sup>-1</sup>) failed to reproduce the experimental covalent binding orientation of K777. 
 
-#################### FIGURE OF DOCKING POSE vs REF? ####################
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/K777_cat_rx_vs_docked.png" alt="Description of image" width="400"/>
+  <figcaption>Licore: Crystallographic reference of K777; CPK: lowest energy docked pose. </figcaption>
+  </p>
+</figure>
+---
 
 This mismatch likely may reflect the rigid conformation of the crystal structure, which was obtained with a covalently bound inhibitor, thus restricting access to the catalytic cleft for non-covalent docking.
 
@@ -450,7 +473,14 @@ sqlite3 -header -table docking/docking_assays/assay_4/assay_4.db \
 
 The best pose (-5.17 kcal.mol<sup>-1</sup>) successfully reproduced the experimental covalent orientation. 
 
-#################### FIGURE OF DOCKING POSE vs REF? ####################
+---
+<figure>
+  <p align="center">
+  <img src="/TidyScreen_v2_docs_new/img/K777_cat_refined_vs_docked.png" alt="Description of image" width="400"/>
+  <figcaption>Licore: Crystallographic reference of K777; CPK: lowest energy docked pose. </figcaption>
+  </p>
+</figure>
+---
 
 The improvement observed after receptor refinement highlights how structural relaxation enhances the accuracy of docking simulations. The refined hCatL pocket allowed better accommodation of K777, maintaining the proper orientation of the vinyl sulfone warhead and hydrogen-bonding pattern characteristic of the experimental complex.
 

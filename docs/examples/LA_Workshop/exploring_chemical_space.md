@@ -544,10 +544,10 @@ With the chemical space now refined and filtered, we are ready to perform *molec
 First, prepare all ligands in the `candidates_for_docking` table.  
 
 ```python title="workshop.py"
-la_workshop_cs.generate_mols_in_table("candidates_for_docking")
+la_workshop_cs.generate_mols_in_table("candidates_for_docking", conf_rank=25, timeout=300, pdbqt_method="meeko", charge_method="gas")
 ```
 
-Instantiate a MolDock object to enable access to docking-related functions:
+Instantiate a MolDock object to enable access to docking-related functions (If not previusly done in the workflow script):
 
 ```python title="workshop.py"
 la_workshop_moldock = md.MolDock(la_workshop)
