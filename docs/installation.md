@@ -3,29 +3,29 @@ title: Installation and Dependencies
 sidebar_position: 3
 ---
 
-It is highly recommendable that `TidyScreen` is installed in an separate Conda virtual environment to prevent inconsistencies among the libraries currently installed in your system and those specifically required by the package itself:
+## Installation from the GitHub repository
 
-```python
-# Create an isolated environment with the required libraries
-$ conda create -n tidyscreen python=3.10 chemicalite
+The easiest way to install TidyScreen is to download the installation script from the [repository](https://github.com/alfredoq/TidyScreen_v2). 
+You can start working after downloading the bash shell script and executing as follows:
 
-# Activate the corresponding environment
-$ conda activate tidyscreen
+```bash
+chmod 777 tidyscreen_installation.sh
+./tidyscreen_installation.sh
 
-# Install TidyScreen from the corresponding GitHub repository
-$ pip install git+https://github.com/alfredoq/TidyScreen_v2
+## The creation con dedicated environment named 'tidyscreen' will be accomplished
+
+conda activate tidyscreen
+
+# Start working
 ```
 
-As part of compounds parameterization, `TidyScreen` implements a charge assignment method by taking profit of the accuracy and speed of a neural network-based approximation ([*Wang, Y; et.al.*](https://pubs.acs.org/doi/10.1021/acs.jpca.4c01287)). As will be presented in the corresponding section, other charge system can be used, however it this so-called *bcc-ml* is highly recommended. In order to be able to use *bcc-ml* fitted charges, an additional library should be installed as follows in the `TidyScreen` environment:
+Upon execution of the bash shell script, two new `conda`environments will be created:
+- `tidyscreen`
+- `adt`
 
-```python
-# Install EspalomaCharge library
-$ conda install -c conda-forge espaloma_charge openff-toolkit
-```
-
-In addition, in order to prepare molecules for docking studies `TidyScreen` workflows uses library called [Meeko](https://github.com/forlilab/Meeko), which was developed by the [ForliLab](https://forlilab.org/) at Scripps Research Institute.Currently, `TidyScreen` requires a specific development version of [Meeko](https://github.com/forlilab/Meeko) capable of reading .mol2 atomic charges. This development version should be installed in the corresponding `TidyScreen` enviroment as follows:
+In order to work, you only need to activate the `tidyscreen` environment, since the one corresponding `adt` will only be used by TidyScreen internally for specific operations.
 
 
-```python
-# Install Meeko library
-$ pip install git+https://github.com/forlilab/Meeko@develop 
+## Manual installation of the package and its dependencies
+
+Follow the instructions provided en README of the [repository](https://github.com/alfredoq/TidyScreen_v2).
