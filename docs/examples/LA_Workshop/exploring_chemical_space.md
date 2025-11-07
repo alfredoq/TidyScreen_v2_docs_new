@@ -833,8 +833,6 @@ Nevertheless, visual inspection suggests this is likely the ideal outcome:
 * For CZP, the predicted pose corresponds to a bioactive conformation, where the warhead is properly oriented toward the catalytic cysteine, and the triazole ring effectively mimics the amide bond through bioisosteric replacement.
 * Conversely, in hCatL, the predicted pose is not geometrically compatible with covalent inhibition, indicating that this compound could display promising selectivity toward CZP and thus represents a synthetically feasible candidate for further exploration.
 
-#################### FIGURE(s) 3D in both targets vs K777 ####################
-
 ---
 <figure>
   <p align="center">
@@ -847,12 +845,12 @@ Nevertheless, visual inspection suggests this is likely the ideal outcome:
 
 <div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '20px'}}>
   <figure style={{textAlign: 'center', flex: 1}}>
-    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CZP.png" alt="CZP fingerprint" width="300"/>
-    <figcaption><b>CZP fingerprint</b></figcaption>
+    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CZP.png" alt="CZP fingerprint" width="285"/>
+    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O_1 bound to CZP</b></figcaption>
   </figure>
   <figure style={{textAlign: 'center', flex: 1}}>
-    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CatL.png" alt="hCatL fingerprint" width="400"/>
-    <figcaption><b>hCatL fingerprint</b></figcaption>
+    <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CatL.png" alt="hCatL fingerprint" width="450"/>
+    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O_1 bound to hCatL</b></figcaption>
   </figure>
 </div>
 
@@ -866,13 +864,24 @@ Visual inspection further supports this observation: the compound adopts bioacti
 ---
 <figure>
   <p align="center">
-  <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N.png" alt="Description of image" width="400"/>
+  <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N.png" alt="Description of image" width="300"/>
   <figcaption>Chemical structure of candidate 'TZCGFRFEIJJRGN-VKFROBJISA-N'. </figcaption>
   </p>
 </figure>
 ---
 
-#################### FIGURE(s) 3D in both targets vs K777 ####################
+
+<div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '20px'}}>
+  <figure style={{textAlign: 'center', flex: 1}}>
+    <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N-CZP.png" alt="CZP fingerprint" width="400"/>
+    <figcaption><b>TZCGFRFEIJJRGN-VKFROBJISA-N_1 bound to CZP</b></figcaption>
+  </figure>
+  <figure style={{textAlign: 'center', flex: 1}}>
+    <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N-CatL.png" alt="hCatL fingerprint" width="400"/>
+    <figcaption><b>TZCGFRFEIJJRGN-VKFROBJISA-N_1 bound to hCatL</b></figcaption>
+  </figure>
+</div>
+
 
 While this may suggest moderate selectivity between CZP and hCatL, it also indicates a favorable binding profile that could translate into reduced off-target toxicity; particularly when compared to K777, as preliminarily estimated by Ersilia’s toxicity predictor. 
 
