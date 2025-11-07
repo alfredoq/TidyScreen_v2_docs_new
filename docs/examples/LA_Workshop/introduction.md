@@ -2,11 +2,13 @@
 title: 2. Introduction to TidyScreen projects
 ---
 
+<div style={{ textAlign: "justify" }}>
 TidyScreen projects provide a structured environment for organizing and managing all data, scripts, and results generated throughout your virtual screening workflows. 
 
 This short tutorial will guide you through the essential commands to create, list, and import TidyScreen projects, as well as to understand their directory layout.
 
 We recommend creating a dedicated Python script, for example `workshop.py`, and executing each command within the `tidyscreen` conda environment.
+</div>
 
 ---
 
@@ -84,7 +86,7 @@ la_workshop_2025/
 ├── docking/            
 │   └── ...  # receptor files, docking assays, docking parameters, etc.
 ├── dynamics/   
-    └── ...  # molecular dynamics simulations on selected systems
+│   └── ...  # molecular dynamics simulations on selected systems
 ├── ml/   
     └── ...  # management of data associated to the development of machine learning models used in the campaign
 ```

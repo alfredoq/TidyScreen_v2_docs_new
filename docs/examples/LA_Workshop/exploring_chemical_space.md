@@ -4,6 +4,8 @@ title: 5. Chemical space design and vHTS workflow
 
 # Chemical Space Design and vHTS Workflow
 
+<div style={{ textAlign: "justify" }}>
+
 In this final section, we will extend the previously validated docking methodology to generate and evaluate **new triazole-based Targeted Covalent Inhibitors (TCIs)** of Cruzipain (CZP).
 
 Following the successful validation of the docking workflow using a training set of triazole-containing derivatives featuring a methyleneamine linker as bioisosteric replacements of peptide bonds and the well-known efficacy of the vinylsulfone-containing inhibitor **K777**, our goal is to design a new series of molecules that **combine these three structural elements**.
@@ -29,7 +31,7 @@ The overall workflow can be divided into five major steps:
    Combine the selected reactants through feasible *in silico* synthetic routes to generate the final compounds, replicating realistic reactions that can be performed in the wet lab.
 
 4. **Toxicity filtering**  
-   Further reduce the library by eliminating potentially cytotoxic molecules, applying an **Ersilia Hub cytotoxicity prediction model**.
+   Further reduce the library by eliminating potentially hepatotoxic molecules, applying an **Ersilia Hub DILI prediction model**.
 
 5. **Docking and analysis**  
    Perform docking-based *vHTS* on the safest and most promising analogues (approximately **5000 compounds**) and analyze their predicted affinity and selectivity profiles toward CZP and hCatL.
@@ -498,7 +500,7 @@ This figure provides a quick visual overview of the chemical diversity, substitu
 
 ## 4. Candidates prioritization
 
-To reduce late-stage attrition and keep *wet-lab* efforts focused, we will filter the virtual products by **predicted human cytotoxicity** using again an **Ersilia** model. Then, we will keep candidates with low predicted cytotoxicity for the docking stage.
+To reduce late-stage attrition and keep *wet-lab* efforts focused, we will filter the virtual products by **predicted human Drug-Induced Liver Injury (DILI)** using again an **Ersilia** model. Then, we will keep candidates with low predicted totoxicity for the docking stage.
 
 Here we use the EOS model `eos21q7`, which provides a probability-like score stored as `eos21q7_dili_probability` (*higher values* = *greater risk*).
 
@@ -514,7 +516,7 @@ sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "SELECT MIN(eos21
 
 *Outputs*: `0.28|0.73`
 
-Here we select the 5000 compounds with the lowest predicted cytotoxicity and store them in a new table. Only those compounds will be submitted to molecular docking.
+Here we select the 5000 compounds with the lowest predicted toxicity and store them in a new table. Only those compounds will be submitted to molecular docking.
 
 ```bash
 sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
@@ -526,7 +528,11 @@ sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db \
  LIMIT 5000;"
 ```
 
-🙌 You now have a **price-aware, drug-like, synthetically feasible, and low-cytotoxicity** candidate set; effectively defining a **rational and efficient chemical space** for *in silico* exploration. These compounds are ready for the **virtual screening stage** against **CZP**, followed by **counter-screening** versus **hCatL** to assess selectivity.
+According to the same EOS DILI prediction model, the reference inhibitor **K777** exhibits a DILI probability of `0.56`, indicating a relatively high risk of hepatotoxicity.
+
+In contrast, the 5000 compounds retained for docking fall within a much safer range (`0.28-0.38`). This confirms that, beyond synthetic feasibility and drug-likeness, our chemical space is biased toward lower predicted human toxicity, effectively prioritizing compounds with improved safety margins compared to known reference inhibitors.
+
+🙌 You now have a **price-aware, drug-like, synthetically feasible, and low-toxicity** candidate set; effectively defining a **rational and efficient chemical space** for *in silico* exploration. These compounds are ready for the **virtual screening stage** against **CZP**, followed by **counter-screening** versus **hCatL** to assess selectivity.
 
 
 ## 5. vHTS
@@ -569,154 +575,344 @@ Docking execution requires access to a local GPU board or a compatible GPU compu
 
 ### 5.2. 📊 Docking results analysis
 
-Analyze the docking results for assay 6 (docking of _candidates_for_docking to CZP refined receptor)
+After completing the large-scale docking run (`assay_6`), we can post-process the results and select candidates with the lowest binding energies.
+As discussed in the previous tutorials (when working with K777 and the training set), the docking score proved to be the most consistent criterion for identifying bioactive poses. Therefore, we will prioritize it as our primary selection metric here.
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.process_docking_assay(assay_id=6,max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+# Analyze the run and extract only the best pose per ligand (lowest-energy)
+la_workshop_docking_analysis.process_docking_assay(
+    assay_id=6,
+    max_poses=1,
+    extract_poses=1
+)
 ```
 
-Use SQL queries to extract the top 100 compounds based on docking score
+Use SQL to subset the **Top 100 compounds by docking score**:
 
 ```bash
-sqlite3 -header -table docking/docking_assays/assay_6/assay_6.db "SELECT LigName, sub_pose, docking_score FROM Results ORDER BY docking_score ASC LIMIT 100" # Note that lower scores are better compared to the training set results
-
-################
-### Outputs ####
-################
-# +-----------------------------+-------------------------------+---------------+
-# |           LigName           |           sub_pose            | docking_score |
-# +-----------------------------+-------------------------------+---------------+
-# | CYWLRULGWUKHND-QDRCWIAMSA-O | CYWLRULGWUKHND-QDRCWIAMSA-O_1 | -8.15         |
-# | AABZCBAGAYRJDZ-ROLKXXGCSA-N | AABZCBAGAYRJDZ-ROLKXXGCSA-N_1 | -8.0          |
-# | MBTIUSBPXHCMMC-GHDUTYINSA-O | MBTIUSBPXHCMMC-GHDUTYINSA-O_1 | -7.99         |
-# | ULUDSBKRRIDGPN-LQTKSSSVSA-O | ULUDSBKRRIDGPN-LQTKSSSVSA-O_1 | -7.98         |
-# | XPIFPVCHVHNQHJ-RILXKHBHSA-O | XPIFPVCHVHNQHJ-RILXKHBHSA-O_1 | -7.94         |
-# | YKLJSRDWNOQPQO-OQBDGEOBSA-N | YKLJSRDWNOQPQO-OQBDGEOBSA-N_1 | -7.94         |
-# | VBFTWLUZOOZBPB-RJCWRSEOSA-O | VBFTWLUZOOZBPB-RJCWRSEOSA-O_1 | -7.88         |
-# | RYFVONWDPDPHHB-ZGCOHECXSA-O | RYFVONWDPDPHHB-ZGCOHECXSA-O_1 | -7.81         |
-# | NFHBDVKWICVFDQ-APDVVUBJSA-O | NFHBDVKWICVFDQ-APDVVUBJSA-O_1 | -7.81         |
-# | WERVHOCRXRNYBH-REISJJRISA-O | WERVHOCRXRNYBH-REISJJRISA-O_1 | -7.74         |
-# | PFZHGYDOQTZDPQ-HUPUPJIPSA-N | PFZHGYDOQTZDPQ-HUPUPJIPSA-N_1 | -7.72         |
-# | MMKPYJXQEXUYDH-OIBPPNFKSA-O | MMKPYJXQEXUYDH-OIBPPNFKSA-O_1 | -7.71         |
-# | LLSCRUHCEVGKSQ-XKHREPBBSA-O | LLSCRUHCEVGKSQ-XKHREPBBSA-O_1 | -7.7          |
-# | DOCNEKCJXXPFEZ-NVOBCCQGSA-O | DOCNEKCJXXPFEZ-NVOBCCQGSA-O_1 | -7.68         |
-# | DYRCPBZRUZAXIX-JKPVDXOUSA-O | DYRCPBZRUZAXIX-JKPVDXOUSA-O_1 | -7.67         |
-# | OMQWCNCSDAOYQS-OJPUXPQHSA-O | OMQWCNCSDAOYQS-OJPUXPQHSA-O_1 | -7.65         |
-# | GEGJOGATSOGXEP-CCVDMMCGSA-O | GEGJOGATSOGXEP-CCVDMMCGSA-O_1 | -7.65         |
-# | CPECBCLWZCCFIR-DWLBMTHHSA-O | CPECBCLWZCCFIR-DWLBMTHHSA-O_1 | -7.61         |
-# | JSATUSIYCVGCOF-GXCCJSRQSA-O | JSATUSIYCVGCOF-GXCCJSRQSA-O_1 | -7.61         |
-# | MSWGHHCHSHNSRS-JMRBFUEQSA-O | MSWGHHCHSHNSRS-JMRBFUEQSA-O_1 | -7.6          |
-# | UZLBPXKFEJTBJW-QAYYRARUSA-O | UZLBPXKFEJTBJW-QAYYRARUSA-O_1 | -7.6          |
-# | YQBRHEDHYQJPGY-NVOBCCQGSA-O | YQBRHEDHYQJPGY-NVOBCCQGSA-O_1 | -7.6          |
-# | KGFVBUCFAKEIIE-HXCDMFHQSA-O | KGFVBUCFAKEIIE-HXCDMFHQSA-O_1 | -7.59         |
-# | NQZUNDAQXMGKSL-XAWYSJHESA-O | NQZUNDAQXMGKSL-XAWYSJHESA-O_1 | -7.59         |
-# | QMUPQKJUACHEQD-OUCRSZIVSA-N | QMUPQKJUACHEQD-OUCRSZIVSA-N_1 | -7.58         |
-# | XBSZIXSVKWJTSD-OGPZQOLISA-O | XBSZIXSVKWJTSD-OGPZQOLISA-O_1 | -7.58         |
-# | ZLAUXDJLABCRDU-OURVLYCJSA-O | ZLAUXDJLABCRDU-OURVLYCJSA-O_1 | -7.57         |
-# | UGDNQIHMIAUMOF-LEEQTAOHSA-O | UGDNQIHMIAUMOF-LEEQTAOHSA-O_1 | -7.57         |
-# | SRXXWAWPFVBRME-HDKPYIOWSA-O | SRXXWAWPFVBRME-HDKPYIOWSA-O_1 | -7.57         |
-# | YWHRELYUHVGYPT-GLLYUYBOSA-O | YWHRELYUHVGYPT-GLLYUYBOSA-O_1 | -7.55         |
-# ...
-# | YGZRUQQIZMBSDD-XXEOEALZSA-O | YGZRUQQIZMBSDD-XXEOEALZSA-O_1 | -7.32         |
-# | DDCLCWAKUGQATH-KXZHXVJYSA-O | DDCLCWAKUGQATH-KXZHXVJYSA-O_1 | -7.32         |
-# | OXUZYRNVCOIXKL-ZGJBHGAESA-O | OXUZYRNVCOIXKL-ZGJBHGAESA-O_1 | -7.31         |
-# | PRKCCYOLKCDSCQ-LFCSLWFPSA-O | PRKCCYOLKCDSCQ-LFCSLWFPSA-O_1 | -7.3          |
-# | RBFWAFPREHYGNU-ZEMQAGKDSA-O | RBFWAFPREHYGNU-ZEMQAGKDSA-O_1 | -7.3          |
-# | DYYZDMIHWINFIF-PXDOLEPXSA-O | DYYZDMIHWINFIF-PXDOLEPXSA-O_1 | -7.3          |
-# | CCNSRCIALOOJHQ-IYNFVXDOSA-O | CCNSRCIALOOJHQ-IYNFVXDOSA-O_1 | -7.29         |
-# | FPMTZBSRRXATEP-KQFRVKRDSA-O | FPMTZBSRRXATEP-KQFRVKRDSA-O_1 | -7.29         |
-# | IJTFVGGDMZVVCY-NEJGVSAFSA-O | IJTFVGGDMZVVCY-NEJGVSAFSA-O_1 | -7.29         |
-# | JXDRXFUSYAZPDG-SGGLPICOSA-O | JXDRXFUSYAZPDG-SGGLPICOSA-O_1 | -7.28         |
-# | ABYYJZBHRQSKOH-SFBQEAGJSA-O | ABYYJZBHRQSKOH-SFBQEAGJSA-O_1 | -7.28         |
-# | YVYRLDPJKNDTKF-FRNNXQESSA-O | YVYRLDPJKNDTKF-FRNNXQESSA-O_1 | -7.28         |
-# | TZNGNDMWLRPWHC-AKVYSXHKSA-O | TZNGNDMWLRPWHC-AKVYSXHKSA-O_1 | -7.28         |
-# | MBRMELWIASNFDQ-BTXCHTAFSA-O | MBRMELWIASNFDQ-BTXCHTAFSA-O_1 | -7.27         |
-# | OIMCTJQEECQBCO-ZGJDELOYSA-O | OIMCTJQEECQBCO-ZGJDELOYSA-O_1 | -7.27         |
+sqlite3 -header -table docking/docking_assays/assay_6/assay_6.db \
+"SELECT LigName, sub_pose, docking_score
+ FROM Results
+ ORDER BY docking_score ASC
+ LIMIT 100;"
 ```
 
-Create a table named 'top_100_CZP_binders' to store the top 100 compounds for further analysis
+<details>
+<summary> <b>Output based on docking score</b></summary>
+<div style={{ fontSize: '90%' }}>
+| **LigName**                     | **sub_pose**                    | **docking_score** |
+|---------------------------------|---------------------------------|------------------:|
+| CYWLRULGWUKHND-QDRCWIAMSA-O     | CYWLRULGWUKHND-QDRCWIAMSA-O_1   | -8.15             |
+| AABZCBAGAYRJDZ-ROLKXXGCSA-N     | AABZCBAGAYRJDZ-ROLKXXGCSA-N_1   | -8.00             |
+| MBTIUSBPXHCMMC-GHDUTYINSA-O     | MBTIUSBPXHCMMC-GHDUTYINSA-O_1   | -7.99             |
+| ULUDSBKRRIDGPN-LQTKSSSVSA-O     | ULUDSBKRRIDGPN-LQTKSSSVSA-O_1   | -7.98             |
+| XPIFPVCHVHNQHJ-RILXKHBHSA-O     | XPIFPVCHVHNQHJ-RILXKHBHSA-O_1   | -7.94             |
+| YKLJSRDWNOQPQO-OQBDGEOBSA-N     | YKLJSRDWNOQPQO-OQBDGEOBSA-N_1   | -7.94             |
+| VBFTWLUZOOZBPB-RJCWRSEOSA-O     | VBFTWLUZOOZBPB-RJCWRSEOSA-O_1   | -7.88             |
+| RYFVONWDPDPHHB-ZGCOHECXSA-O     | RYFVONWDPDPHHB-ZGCOHECXSA-O_1   | -7.81             |
+| NFHBDVKWICVFDQ-APDVVUBJSA-O     | NFHBDVKWICVFDQ-APDVVUBJSA-O_1   | -7.81             |
+| WERVHOCRXRNYBH-REISJJRISA-O     | WERVHOCRXRNYBH-REISJJRISA-O_1   | -7.74             |
+| PFZHGYDOQTZDPQ-HUPUPJIPSA-N     | PFZHGYDOQTZDPQ-HUPUPJIPSA-N_1   | -7.72             |
+| MMKPYJXQEXUYDH-OIBPPNFKSA-O     | MMKPYJXQEXUYDH-OIBPPNFKSA-O_1   | -7.71             |
+| LLSCRUHCEVGKSQ-XKHREPBBSA-O     | LLSCRUHCEVGKSQ-XKHREPBBSA-O_1   | -7.70             |
+| DOCNEKCJXXPFEZ-NVOBCCQGSA-O     | DOCNEKCJXXPFEZ-NVOBCCQGSA-O_1   | -7.68             |
+| DYRCPBZRUZAXIX-JKPVDXOUSA-O     | DYRCPBZRUZAXIX-JKPVDXOUSA-O_1   | -7.67             |
+| OMQWCNCSDAOYQS-OJPUXPQHSA-O     | OMQWCNCSDAOYQS-OJPUXPQHSA-O_1   | -7.65             |
+| GEGJOGATSOGXEP-CCVDMMCGSA-O     | GEGJOGATSOGXEP-CCVDMMCGSA-O_1   | -7.65             |
+| CPECBCLWZCCFIR-DWLBMTHHSA-O     | CPECBCLWZCCFIR-DWLBMTHHSA-O_1   | -7.61             |
+| JSATUSIYCVGCOF-GXCCJSRQSA-O     | JSATUSIYCVGCOF-GXCCJSRQSA-O_1   | -7.61             |
+| MSWGHHCHSHNSRS-JMRBFUEQSA-O     | MSWGHHCHSHNSRS-JMRBFUEQSA-O_1   | -7.60             |
+| UZLBPXKFEJTBJW-QAYYRARUSA-O     | UZLBPXKFEJTBJW-QAYYRARUSA-O_1   | -7.60             |
+| YQBRHEDHYQJPGY-NVOBCCQGSA-O     | YQBRHEDHYQJPGY-NVOBCCQGSA-O_1   | -7.60             |
+| KGFVBUCFAKEIIE-HXCDMFHQSA-O     | KGFVBUCFAKEIIE-HXCDMFHQSA-O_1   | -7.59             |
+| NQZUNDAQXMGKSL-XAWYSJHESA-O     | NQZUNDAQXMGKSL-XAWYSJHESA-O_1   | -7.59             |
+| QMUPQKJUACHEQD-OUCRSZIVSA-N     | QMUPQKJUACHEQD-OUCRSZIVSA-N_1   | -7.58             |
+| XBSZIXSVKWJTSD-OGPZQOLISA-O     | XBSZIXSVKWJTSD-OGPZQOLISA-O_1   | -7.58             |
+| ZLAUXDJLABCRDU-OURVLYCJSA-O     | ZLAUXDJLABCRDU-OURVLYCJSA-O_1   | -7.57             |
+| UGDNQIHMIAUMOF-LEEQTAOHSA-O     | UGDNQIHMIAUMOF-LEEQTAOHSA-O_1   | -7.57             |
+| SRXXWAWPFVBRME-HDKPYIOWSA-O     | SRXXWAWPFVBRME-HDKPYIOWSA-O_1   | -7.57             |
+| YWHRELYUHVGYPT-GLLYUYBOSA-O     | YWHRELYUHVGYPT-GLLYUYBOSA-O_1   | -7.55             |
+|...|...|...|
+| YGZRUQQIZMBSDD-XXEOEALZSA-O     | YGZRUQQIZMBSDD-XXEOEALZSA-O_1   | -7.32             |
+| DDCLCWAKUGQATH-KXZHXVJYSA-O     | DDCLCWAKUGQATH-KXZHXVJYSA-O_1   | -7.32             |
+| OXUZYRNVCOIXKL-ZGJBHGAESA-O     | OXUZYRNVCOIXKL-ZGJBHGAESA-O_1   | -7.31             |
+| PRKCCYOLKCDSCQ-LFCSLWFPSA-O     | PRKCCYOLKCDSCQ-LFCSLWFPSA-O_1   | -7.30             |
+| RBFWAFPREHYGNU-ZEMQAGKDSA-O     | RBFWAFPREHYGNU-ZEMQAGKDSA-O_1   | -7.30             |
+| DYYZDMIHWINFIF-PXDOLEPXSA-O     | DYYZDMIHWINFIF-PXDOLEPXSA-O_1   | -7.30             |
+| CCNSRCIALOOJHQ-IYNFVXDOSA-O     | CCNSRCIALOOJHQ-IYNFVXDOSA-O_1   | -7.29             |
+| FPMTZBSRRXATEP-KQFRVKRDSA-O     | FPMTZBSRRXATEP-KQFRVKRDSA-O_1   | -7.29             |
+| IJTFVGGDMZVVCY-NEJGVSAFSA-O     | IJTFVGGDMZVVCY-NEJGVSAFSA-O_1   | -7.29             |
+| JXDRXFUSYAZPDG-SGGLPICOSA-O     | JXDRXFUSYAZPDG-SGGLPICOSA-O_1   | -7.28             |
+| ABYYJZBHRQSKOH-SFBQEAGJSA-O     | ABYYJZBHRQSKOH-SFBQEAGJSA-O_1   | -7.28             |
+| YVYRLDPJKNDTKF-FRNNXQESSA-O     | YVYRLDPJKNDTKF-FRNNXQESSA-O_1   | -7.28             |
+| TZNGNDMWLRPWHC-AKVYSXHKSA-O     | TZNGNDMWLRPWHC-AKVYSXHKSA-O_1   | -7.28             |
+| MBRMELWIASNFDQ-BTXCHTAFSA-O     | MBRMELWIASNFDQ-BTXCHTAFSA-O_1   | -7.27             |
+| OIMCTJQEECQBCO-ZGJDELOYSA-O     | OIMCTJQEECQBCO-ZGJDELOYSA-O_1   | -7.27             |
+</div>
+</details>
+
+
+Upon inspecting the output, you will notice that the docking scores are considerably more negative than those obtained for K777 bound to CZP (≈ -4.08 kcal.mol<sup>-1</sup>), suggesting that more stable encounter complexes may have been identified in this large-scale screening.
+
+To reinforce the validity of these findings, we will now redock the top 100 potential inhibitors to verify reproducibility and ensure that the observed ranking trends remain consistent across independent docking runs.
+
+Create a table named `top_100_CZP_binders` to store the selected compounds for further analysis:
 
 ```bash
-sqlite3 chemspace/processed_data/chemspace.db "ATTACH DATABASE 'docking/docking_assays/assay_6/assay_6.db' AS db2; CREATE TABLE top_100_CZP_binders AS SELECT * FROM candidates_for_docking WHERE inchi_key IN (SELECT LigName FROM db2.Results t2 ORDER BY docking_score ASC LIMIT 100); DETACH DATABASE db2"
+sqlite3 chemspace/processed_data/chemspace.db \
+"ATTACH DATABASE 'docking/docking_assays/assay_6/assay_6.db' AS db2;
+ CREATE TABLE top_100_CZP_binders AS
+ SELECT * FROM candidates_for_docking
+ WHERE inchi_key IN (
+     SELECT LigName FROM db2.Results
+     ORDER BY docking_score ASC
+     LIMIT 100
+ );
+ DETACH DATABASE db2;"
 ```
 
-Create a docking assay for 'top_100_CZP_binders' to repeat docking against the CZP refined receptor (to confirm reproducibility and isolate results)
+Create a new docking assay for `top_100_CZP_binders` using the refined CZP receptor and the validated docking parameters to confirm reproducibility:
 
 ```python title="workshop.py"
-la_workshop_moldock.dock_table("top_100_CZP_binders",id_receptor_model=3,id_docking_params=2) # docking assay 7
+la_workshop_moldock.dock_table(
+    "top_100_CZP_binders",
+    id_receptor_model=3,
+    id_docking_params=2
+)
 ```
-
-Analyze the docking results for assay 7 (docking of _candidates_for_dockin_g to CZP refined receptor)
+Analyze the docking results for `assay_7`: 
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.process_docking_assay(assay_id=7, max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+# Extract only the lowest-energy pose per ligand
+la_workshop_docking_analysis.process_docking_assay(
+    assay_id=7,
+    max_poses=1,
+    extract_poses=1
+)  
 ```
 
-Compute the MMPBSA fingerprints for assays 7 
+Finally, compute the MMGBSA energy fingerprints for the newly generated complexes to evaluate their thermodynamic stability:
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(assay_id=7,mmgbsa=1,prolif=0) # Input receptor field indexes when requested
+# Provide receptor field indices when prompted
+la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(
+    assay_id=7,
+    mmgbsa=1,
+    prolif=0
+)  
 ```
 
-Create a docking assay for 'top_100_CZP_binders' against the hCatL refined receptor
+Although the detailed results are not displayed here, the redocking step confirmed excellent reproducibility across independent assays. The calculated MMGBSA values were highly consistent with the previous run, showing only minor deviations (~0.2 kcal.mol<sup>-1</sup>) for a few ligands, well within the expected precision range of the method.
+
+---- 
+
+Having validated the workflow and confirmed the robustness of our docking parameters for CZP, the next logical step is to apply the same protocol against the refined hCatL receptor. This comparative analysis will allow us to **identify ligands exhibiting preferential binding to CZP over hCatL**, thus highlighting selectivity determinants relevant for the design of next-generation antichagasic agents.
+
+
+Create a new docking assay for `top_100_CZP_binders` using the refined hCatL receptor and the validated docking parameters to confirm reproducibility:
 
 ```python title="workshop.py"
-la_workshop_moldock.dock_table("top_100_CZP_binders",id_receptor_model=4,id_docking_params=2) # docking assay 8
+la_workshop_moldock.dock_table(
+    "top_100_CZP_binders",
+    id_receptor_model=4,
+    id_docking_params=2
+)
 ```
-
-Analyze the docking results for assay 8 (docking of _top_100_CZP_binders_ table to hCatL refined receptor)
+Analyze the docking results for `assay_8`: 
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.process_docking_assay(assay_id=8,max_poses=1, extract_poses=1) # Notice that we extract only 1, i.e. the lowest energy docked pose
+# Extract only the lowest-energy pose per ligand
+la_workshop_docking_analysis.process_docking_assay(
+    assay_id=8,
+    max_poses=1,
+    extract_poses=1
+)  
 ```
 
-Compute the MMPBSA fingerprints for assay 8 
+Finally, compute the MMGBSA energy fingerprints for the newly generated complexes to evaluate their thermodynamic stability:
 
 ```python title="workshop.py"
-la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(assay_id=8,mmgbsa=1,prolif=0) # Input receptor field indexes when requested
+# Provide receptor field indices when prompted
+la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(
+    assay_id=8,
+    mmgbsa=1,
+    prolif=0
+)  
 ```
 
-Use SQL queries to combine results from both docking assays and search for candidate compounds with better docking scores to CZP than to hCatL
-
-``` bash
-sqlite3 -header -table docking/docking_assays/assay_7/assay_7.db "ATTACH DATABASE '/media/HD2/Trabajos-in-silico/la_workshop_9/docking/docking_assays/assay_8/assay_8.db' AS db2; SELECT t1.sub_pose, t1.docking_score AS CZP_ds, t2.delta_g_total AS CZP_d_g_tot, db2.Results.docking_score AS hCatL_ds, db2.mmgbsa_fingerprints.delta_g_total AS hCatL_d_g_tot, ROUND((t1.docking_score - db2.Results.docking_score),2) AS diff_dock_score, ROUND((t2.delta_g_total - db2.mmgbsa_fingerprints.delta_g_total),2) AS diff_d_g_tot FROM Results t1 JOIN mmgbsa_fingerprints t2 ON t1.LigName = t2.LigName JOIN db2.Results ON t1.LigName = db2.Results.LigName JOIN db2.mmgbsa_fingerprints ON t1.LigName = db2.mmgbsa_fingerprints.LigName ORDER BY diff_dock_score ASC LIMIT 10; DETACH DATABASE db2;"
-
-################
-### Outputs ####
-################
-# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
-# |           sub_pose            | CZP_ds | CZP_d_g_tot | hCatL_ds | hCatL_d_g_tot | diff_dock_score | diff_d_g_tot |
-# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
-# | CUFNDGFOXHNKKU-MGUYBSQASA-O_1 | -7.24  | -51.6476    | -5.85    | -39.9543      | -1.39           | -11.69       | # The cpd is exotic derived from non-specific AZ3 coupling reaction definition
-# | CYWLRULGWUKHND-QDRCWIAMSA-O_1 | -8.09  | -34.9057    | -6.73    | -29.0774      | -1.36           | -5.83        | # Ideal Cpds - bioactive conformation CZP and non bioactive hCatL
-# | TZCGFRFEIJJRGN-VKFROBJISA-N_1 | -7.44  | -49.0613    | -6.2     | -39.6637      | -1.24           | -9.4         | # Both bioactive poses, but CZP better binder
-# | GEGJOGATSOGXEP-CCVDMMCGSA-O_1 | -7.66  | -39.9591    | -6.48    | -38.7983      | -1.18           | -1.16        |
-# | IHRQBMNUDKYYTK-HUAVMZDFSA-N_1 | -7.28  | -51.4805    | -6.24    | -45.7701      | -1.04           | -5.71        |
-# | DDCLCWAKUGQATH-KXZHXVJYSA-O_1 | -7.49  | -42.1068    | -6.47    | -41.6397      | -1.02           | -0.47        |
-# | KHUSNQDEVMQYSO-GEKJTBGDSA-O_1 | -7.51  | -35.6408    | -6.59    | -36.5528      | -0.92           | 0.91         |
-# | AABZCBAGAYRJDZ-ROLKXXGCSA-N_1 | -8.19  | -38.4541    | -7.29    | -44.896       | -0.9            | 6.44         |
-# | MSWGHHCHSHNSRS-JMRBFUEQSA-O_1 | -7.6   | -48.8381    | -6.7     | -47.1861      | -0.9            | -1.65        |
-# | JXDRXFUSYAZPDG-SGGLPICOSA-O_1 | -7.29  | -49.5987    | -6.45    | -52.0911      | -0.84           | 2.49         |
-# +-------------------------------+--------+-------------+----------+---------------+-----------------+--------------+
-```
-
-Extract the per-residue computed fingerprints for the top candidate: CYWLRULGWUKHND-QDRCWIAMSA-O_1 with CZP, hCatL and K777 reference
-
-```bash
-sqlite3 docking/docking_assays/assay_7/assay_7.db "SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';" # Candidate bound to CZP
-
-sqlite3 docking/docking_assays/assay_8/assay_8.db "SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';" # Candidate bound to hCatL
-
-sqlite3 docking/docking_assays/assay_7/assay_7.db "SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';" # Candidate bound to CZP
-
-sqlite3 docking/docking_assays/assay_8/assay_8.db "SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';" # Candidate bound to hCatL
-
-sqlite3 docking/docking_assays/assay_2/assay_2.db "SELECT writefile('fp_K777-CZP.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';" # K777 bound to CZP
-
-sqlite3 docking/docking_assays/assay_4/assay_4.db "SELECT writefile('fp_K777-hCatL.csv', mmgbsa_csv_file) FROM  mmgbsa_fingerprints WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';"  # K777 bound to hCatL
-```
-
+Now that both docking and MMGBSA analyses have been completed for CZP and hCatL, we can directly compare their results to identify ligands that preferentially bind to CZP.
 
 ### 5.3. 🎯 Selection of candidates for synthesis
 
+The following SQL query joins both assay databases to retrieve, for each compound, the docking scores and MMGBSA total energies obtained against both receptors.
+By computing the difference between the values (`diff_dock_score` and `diff_d_g_tot`), we can easily pinpoint candidates with improved binding affinity for CZP relative to hCatL.
 
+:::warning[Important]
+Please make sure to **replace `/PATH/TO/PROJECT/`** with your **own local or cluster directory path** before running the command below. If not updated, the SQL query will fail because the database cannot be located.
+:::
+
+``` bash
+sqlite3 -header -table docking/docking_assays/assay_7/assay_7.db \
+"ATTACH DATABASE '/PATH/TO/PROJECT/docking/docking_assays/assay_8/assay_8.db' AS db2;
+ SELECT t1.sub_pose,
+        t1.docking_score AS CZP_ds,
+        t2.delta_g_total AS CZP_d_g_tot,
+        db2.Results.docking_score AS hCatL_ds,
+        db2.mmgbsa_fingerprints.delta_g_total AS hCatL_d_g_tot,
+        ROUND((t1.docking_score - db2.Results.docking_score),2) AS diff_dock_score,
+        ROUND((t2.delta_g_total - db2.mmgbsa_fingerprints.delta_g_total),2) AS diff_d_g_tot
+ FROM Results t1
+ JOIN mmgbsa_fingerprints t2 ON t1.LigName = t2.LigName
+ JOIN db2.Results ON t1.LigName = db2.Results.LigName
+ JOIN db2.mmgbsa_fingerprints ON t1.LigName = db2.mmgbsa_fingerprints.LigName
+ ORDER BY diff_dock_score ASC
+ LIMIT 10;
+ DETACH DATABASE db2;"
+``` 
+
+----
+
+<details> 
+<summary> <b>Output ranked by docking score difference</b></summary>
+| **sub_pose**                    | **CZP_ds** | **CZP_d_g_tot** | **hCatL_ds** | **hCatL_d_g_tot** | **diff_dock_score** | **diff_d_g_tot** |
+|---------------------------------|------------:|----------------:|--------------:|------------------:|--------------------:|----------------|
+| CUFNDGFOXHNKKU-MGUYBSQASA-O_1  | -7.24       | -51.6476        | -5.85         | -39.9543          | -1.39               | -11.69          |
+| CYWLRULGWUKHND-QDRCWIAMSA-O_1  | -8.09       | -34.9057        | -6.73         | -29.0774          | -1.36               | -5.83           |
+| TZCGFRFEIJJRGN-VKFROBJISA-N_1  | -7.44       | -49.0613        | -6.20         | -39.6637          | -1.24               | -9.40           |
+| GEGJOGATSOGXEP-CCVDMMCGSA-O_1  | -7.66       | -39.9591        | -6.48         | -38.7983          | -1.18               | -1.16           |
+| IHRQBMNUDKYYTK-HUAVMZDFSA-N_1  | -7.28       | -51.4805        | -6.24         | -45.7701          | -1.04               | -5.71           |
+| DDCLCWAKUGQATH-KXZHXVJYSA-O_1  | -7.49       | -42.1068        | -6.47         | -41.6397          | -1.02               | -0.47           |
+| KHUSNQDEVMQYSO-GEKJTBGDSA-O_1  | -7.51       | -35.6408        | -6.59         | -36.5528          | -0.92               | 0.91            |
+| AABZCBAGAYRJDZ-ROLKXXGCSA-N_1  | -8.19       | -38.4541        | -7.29         | -44.8960          | -0.90               | 6.44            |
+| MSWGHHCHSHNSRS-JMRBFUEQSA-O_1  | -7.60       | -48.8381        | -6.70         | -47.1861          | -0.90               | -1.65           |
+| JXDRXFUSYAZPDG-SGGLPICOSA-O_1  | -7.29       | -49.5987        | -6.45         | -52.0911          | -0.84               | 2.49            |
+</details>
+
+Upon inspection of the results, we will focus on the three top-scoring ligands according to their docking scores, as they exhibit the most promising binding affinities toward CZP.
+
+<div style={{ fontSize: '90%' }}>
+| **sub_pose**                    | **CZP_ds** | **CZP_d_g_tot** | **hCatL_ds** | **hCatL_d_g_tot** | **diff_dock_score** | **diff_d_g_tot** |
+|---------------------------------|------------:|----------------:|--------------:|------------------:|--------------------:|----------------|
+| CUFNDGFOXHNKKU-MGUYBSQASA-O_1  | -7.24       | -51.6476        | -5.85         | -39.9543          | -1.39               | -11.69          |
+| CYWLRULGWUKHND-QDRCWIAMSA-O_1  | -8.09       | -34.9057        | -6.73         | -29.0774          | -1.36               | -5.83           |
+| TZCGFRFEIJJRGN-VKFROBJISA-N_1  | -7.44       | -49.0613        | -6.20         | -39.6637          | -1.24               | -9.40           |
+| K777  | -5.42       | -50.2336        | -5.17         | -43.6419          | -0.25               | -6.59           |
+</div>
+
+1. **CUFNDGFOXHNKKU-MGUYBSQASA-O** 
+
+In the first case, the compound **CUFNDGFOXHNKKU-MGUYBSQASA-O** stands out due to its large affinity gap between CZP and hCatL, both in docking score and MMGBSA; the latter exceeding even the 6.6 kcal.mol<sup>-1</sup> difference observed for K777.
+
+However, upon visual inspection, we identified a critical issue: this compound was incorrectly generated during the in silico synthesis. 
+
+#################### FIGURE 2D ####################
+
+Specifically, the nitrile group of the amine derivative (R<sup>3</sup>) was spuriously used as the reacting atom during the A3 coupling step. This misreaction originated from an overly permissive SMARTS pattern of the N in the reaction definition:
+
+`la_workshop_cs.add_smarts_reaction("[N:1].[CX3H1:2](=[O:3])>>[NX4+:1][C@H:2][C:4]#[C:5]", "A3 coupling")`
+
+This compound was intentionally retained in the dataset for educational purposes, to emphasize the importance of thoroughly validating synthetic rules and performing sanity checks prior to large-scale docking campaigns, avoiding unnecessary computational costs and misinterpretations.
+
+Having said that, most of the remaining ligands were correctly synthesized, allowing for a reliable comparative analysis of their binding behaviors.
+
+2. **CYWLRULGWUKHND-QDRCWIAMSA-O** 
+
+This compound exhibits a significant difference in docking score between CZP and hCatL, favoring CZP binding; in contrast to K777, for which the difference was reversed.
+However, the ΔG (MMGBSA) difference is smaller, and the absolute binding energy is also less favorable.
+
+Nevertheless, visual inspection suggests this is likely the ideal outcome:
+* For CZP, the predicted pose corresponds to a bioactive conformation, where the warhead is properly oriented toward the catalytic cysteine, and the triazole ring effectively mimics the amide bond through bioisosteric replacement.
+* Conversely, in hCatL, the predicted pose is not geometrically compatible with covalent inhibition, indicating that this compound could display promising selectivity toward CZP and thus represents a synthetically feasible candidate for further exploration.
+
+#################### FIGURE(s) 3D in both targets vs K777 ####################
+
+3. **TZCGFRFEIJJRGN-VKFROBJISA-N**
+
+In this case, all indicators are favorable: both the docking score and MMGBSA ΔG values are improved for CZP relative to hCatL, and the absolute ΔG values are comparable to those obtained for K777.
+Visual inspection further supports this observation: the compound adopts bioactive-like poses in both targets, properly aligned for potential covalent inhibition.
+
+#################### FIGURE(s) 3D in both targets vs K777 ####################
+
+While this may suggest moderate selectivity between CZP and hCatL, it also indicates a favorable binding profile that could translate into reduced off-target toxicity; particularly when compared to K777, as preliminarily estimated by Ersilia’s toxicity predictor. 
+
+## 🧩 Summary of the Chemical Space Exploration
+
+Taken together, this small-scale benchmark exemplifies the diversity of outcomes that can emerge from rational in silico design workflows.
+Among the top-ranked ligands, we identified three representative cases:
+
+- a **synthetic artefact** (*CUFNDGFOXHNKKU-MGUYBSQASA-O*), which highlights the need for **rigorous validation** of virtual reaction schemes and filters before large-scale screening;
+
+- a **balanced binder** (*TZCGFRFEIJJRGN-VKFROBJISA-N*), displaying **comparable affinities** for both targets but potentially improved safety relative to K777; and
+
+- a **selective inhibitor candidate** (*CYWLRULGWUKHND-QDRCWIAMSA-O*), favoring CZP over hCatL and reproducing a bioactive-like orientation.
+
+Altogether, these findings illustrate how in silico chemical space exploration can efficiently combine synthetic accessibility, predicted safety, and mechanistic insight to refine candidate selection before synthesis. 
+
+
+<details> 
+<summary> <b>💭 WHAT IF...? </b></summary>
+
+So far, we have relied on manual inspection and energetic metrics (Docking score, ΔG<sub>MMGBSA</sub>) to evaluate candidate poses.
+But what if we could go one step further, quantifying the per-residue interactions and learning from them automatically?
+
+Each docking result already contains per-residue interaction fingerprints, which can be extracted directly from the `mmgbsa_fingerprints` table as shown below:
+
+```bash
+sqlite3 docking/docking_assays/assay_2/assay_2.db \
+"SELECT writefile('fp_K777-CZP.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';"  # K777 bound to CZP
+
+sqlite3 docking/docking_assays/assay_4/assay_4.db \
+"SELECT writefile('fp_K777-hCatL.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'RHJLQMVZXQKJKB-FPHSVDBKSA-N_1';"  # K777 bound to hCatL
+
+sqlite3 docking/docking_assays/assay_7/assay_7.db \
+"SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-CZP.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';"  # Candidate bound to CZP
+
+sqlite3 docking/docking_assays/assay_8/assay_8.db \
+"SELECT writefile('fp_CYWLRULGWUKHND-QDRCWIAMSA-O_1-hCatL.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';"  # Candidate bound to hCatL
+
+sqlite3 docking/docking_assays/assay_7/assay_7.db \
+"SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-CZP.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';"  # Candidate bound to CZP
+
+sqlite3 docking/docking_assays/assay_8/assay_8.db \
+"SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-hCatL.csv', mmgbsa_csv_file) 
+ FROM mmgbsa_fingerprints 
+ WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';"  # Candidate bound to hCatL
+```
+These CSV files encode per-residue contributions (vdW, electrostatics, solvation, etc.), enabling:
+* automated filtering of poses that reproduce key binding interactions ("hotspots"),
+* quantitative comparison across targets, and
+* use as training data for machine learning classifiers, capable of distinguishing bioactive from non-bioactive binding modes.
+
+In practice, this approach can drastically reduce the need for visual inspection while providing interpretable molecular descriptors for downstream AI-driven design pipelines.
+
+🔍 **Comparative analysis of interaction fingerprints**
+
+| CZP fingerprint | hCatL fingerprint |
+|-----------------|-------------------|
+| ![](/img/mmgbsa_group_total_by_residue_CZP.png) | ![](/img/mmgbsa_group_total_by_residue_hCatL.png) |
+
+In this example, K777 exhibits a similar interaction pattern across both targets, as expected for a non-selective covalent inhibitor.
+
+In contrast, the compound *CYWLRULGWUKHND-QDRCWIAMSA-O* shows a marked difference in interaction profiles:
+
+* Gln19 (CZP) / Gln20 (hCatL), both residues belong to the oxyanion hole, essential for catalytic stabilization.
+* HIP162 (CZP) / HIP164 (hCatL), the histidine partner of Cys25/Cys26 forming the catalytic dyad.
+
+Had we applied an interaction-based filter requiring the satisfaction of these two key contacts, the analysis would have automatically identified *CYWLRULGWUKHND-QDRCWIAMSA-O* as a CZP-selective binder, while *TZCGFRFEIJJRGN-VKFROBJISA-N* would emerge as bioactive in both targets.
+
+
+</details>
+
+
+
+</div>
