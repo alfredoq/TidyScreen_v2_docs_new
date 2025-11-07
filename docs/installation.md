@@ -12,7 +12,7 @@ You can start working after downloading the bash shell script and executing as f
 chmod 777 tidyscreen_installation.sh
 ./tidyscreen_installation.sh
 
-## The creation con dedicated environment named 'tidyscreen' will be accomplished
+## The creation of a dedicated environment named 'tidyscreen' will be accomplished
 
 conda activate tidyscreen
 
