@@ -7,7 +7,7 @@ Before moving on to large-scale virtual screening, it is essential to validate t
 
 ---
 
-## 1️⃣ Retrieve and process raw crystallographic structures
+## 3.1- Retrieve and process raw crystallographic structures
 
 Experimental PDB files from the [Protein Data Bank (PDB)](https://www.rcsb.org/) are the starting point for most SBDD projects. However, these files usually cannot be used directly for molecular docking. Experimental PDB structures often contain multiple artifacts or missing data that can interfere with docking calculations, such as missing hydrogens, alternate conformations, crystallographic waters, co-crystallized ligands, and/or unresolved residues.  
 
@@ -106,7 +106,7 @@ Always inspect the generated receptor visually (for instance using **VMD**, **Py
 :::
 
 
-## 2️⃣ Compute AutoGrid4 grid files
+## 3.2- Compute AutoGrid4 grid files
 
 Once the receptor has been properly cleaned and converted into **AutoDock4-compatible formats**,  
 the next step is to generate the **grid maps** with `autogrid4`. These define how the docking algorithm evaluates ligand-receptor interactions within the specified grid box.
@@ -141,7 +141,7 @@ If you modify the grid box size or center, remember to regenerate these maps bef
 You should now have a fully prepared receptor folder similar to the one provided [here](/downloads/2OZ2.zip) (Right-click and save if you wish to explore the precomputed files). 
 
 
-## 3️⃣ Import precomputed receptor models into TidyScreen
+## 3.3- Import precomputed receptor models into TidyScreen
 
 
 In some cases, receptor preparation might have been performed outside of TidyScreen to generate all required files (`.pdbqt`, `.gpf`, `.map`, `.glg`, etc.). Instead of repeating those steps, you can **directly import the complete receptor folder** into your active TidyScreen project. This integrates the receptor into the project’s internal database and makes it immediately available for docking assays.
@@ -174,7 +174,7 @@ la_workshop_moldock.input_receptor("/PATH/TO/PROJECT/docking/raw_data/hCatL_refi
 
 Each receptor will be automatically indexed and stored in the project database, ready to be selected during docking setup.
 
-## 5️⃣ Ligand preparation: K777  
+## 3.4- Ligand preparation: K777  
 
 Before running large-scale docking campaigns, it is essential to **validate the protocol** using reference ligands whose binding mode are already known. In this case, we will use **K777**, the well-characterized *vinyl sulfone* inhibitor co-crystallized with both CZP and hCatL. Reproducing its binding pose will help ensure that the docking parameters and receptor grids are correctly configured.  
 
@@ -213,7 +213,7 @@ This step generates multiple conformers (up to 25), optimizes their geometry, as
 
 At this stage, all the necessary input files have been prepared, and we are ready to proceed with the docking study.
 
-## 6️⃣ Setting and launching molecular docking studies
+## 3.5- Setting and launching molecular docking studies
 
 Before running the docking experiment, it is necessary to define the **docking parameters**.  
 The function `create_docking_params_set()` generates a database (`docking/params/docking_params.db`) containing the **default AutoDock conditions**.  
@@ -267,7 +267,7 @@ You can launch the assay in your terminal with:
 TidyScreen prepares all required input files and executes the docking through AutoDock-GPU, the GPU-accelerated implementation of AutoDock4. This allows a substantial speed-up compared to the CPU version, while maintaining compatibility with the same scoring function and parameter set.
 :::
 
-## 7️⃣ Docking results analysis
+## 3.6- Docking results analysis
 
 
 #### Autodock output
@@ -486,7 +486,7 @@ The improvement observed after receptor refinement highlights how structural rel
 
 Together with the results obtained for CZP, these findings confirm that receptor models 3 (CZP) and 4 (hCatL) offer the best compromise between structural realism and computational tractability, and will be used in the subsequent large-scale virtual screening.
 
-## 8️⃣ Post-docking refinement with MMGBSA calculations 
+## 3.7- Post-docking refinement with MMGBSA calculations 
 
 While docking scores provide a quick estimate of binding affinity, they rely on simplified scoring functions that may overlook dynamic-related effects.  
 To obtain more physically grounded interaction energies, *TidyScreen* integrates an [**MMGBSA module**](https://pubmed.ncbi.nlm.nih.gov/25835573/) (*Molecular Mechanics Generalized Born Surface Area*) that re-evaluates the best poses considering implicit solvent effects and molecular mechanics terms.

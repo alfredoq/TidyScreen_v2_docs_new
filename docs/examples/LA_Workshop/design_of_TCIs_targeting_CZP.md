@@ -3,7 +3,7 @@ title: 1. Design of Targeted Covalent Inhibitors (TCIs) targeting Cruzipain
 ---
 <div style={{ textAlign: "justify" }}>
 
-## Chagas Disease: A Neglected Global Challenge
+## 1.1- Chagas Disease: A Neglected Global Challenge
 
 Chagas disease (CD), also known as American trypanosomiasis, is a potentially life-threatening systemic infection caused by the protozoan parasite *Trypanosoma cruzi* (*T. cruzi*). It affects approximately 6.5 million people worldwide, with an annual incidence of about 30,000 new cases and up to 13,000 deaths. Despite its impact, CD remains one of the most neglected tropical diseases and the third most common parasitic infection globally, underscoring the urgent need for new public health and therapeutic strategies in endemic regions.
 
@@ -18,7 +18,7 @@ Chagas disease (CD), also known as American trypanosomiasis, is a potentially li
 
 Although significant efforts have been devoted to drug discovery for CD, **only two nonspecific agents** developed nearly five decades ago - **nifurtimox** (1940) and **benznidazole** (1974) - remain the sole treatment options. While both drugs are effective against the acute stage, their severe adverse effects and limited efficacy in chronic infection restrict their use, leading to poor adherence and the emergence of resistance.
 
-## Cruzipain (CZP): A Key Druggable Target
+## 1.2- Cruzipain (CZP): A Key Druggable Target
 
 By the late 1970s, a family of cysteine proteases was identified as essential to the *T. cruzi* life cycle. Among them, **Cruzipain** (CZP), characterized by Cazzulo and colleagues, emerged as the predominant enzyme and a key druggable target. Beyond its role in parasite nutrition, CZP participates in metacyclogenesis and contributes to host cell invasion and virulence.
 
@@ -50,7 +50,7 @@ Covalent inhibitors can achieve greater potency and longer duration of action bu
 ---
 
 
-## K777: Benchmark CZP Inhibitor
+## 1.3- K777: Benchmark CZP Inhibitor
 
 Among CZP inhibitors, **K777** stands out as the benchmark compound. It is a peptidomimetic CZP inhibitor (in vitro IC<sub>50</sub> = 2-10 nM) featuring a vinylsulfone WH whose mechanism has been confirmed both experimentally and computationally. K777 exhibits potent in vitro and in vivo activity across different *T. cruzi* strains and CZP subtypes, including those resistant to standard therapies. The crystal structure of CZP covalently bound to K777 (PDB ID: [2OZ2](https://www.rcsb.org/structure/2OZ2)) revealed critical interactions: its peptide backbone forms hydrogen bonds with Gly65 (S3) and Gly66 (S2); the sulfonyl group aligns with the oxyanion hole; and the methylpiperazine at R<sup>3</sup> establishes a stabilizing contact with Ser61 (S3). Modifications or removal of the homoPhe-like R<sup>1</sup> drastically reduce potency, and attempts to replace the phenyl group at R<sup>2</sup> failed to improve activity.
 
@@ -65,7 +65,7 @@ Among CZP inhibitors, **K777** stands out as the benchmark compound. It is a pep
 
 Preclinical studies confirmed K777’s oral bioavailability and efficacy in rodents, dogs, and non-human primates, eliminating parasitemia in both acute and chronic infections. However, they were halted due to elevated hepatotoxicity markers - likely resulting from irreversible inhibition of CYP3A4 - and other adverse effects, even at low doses. Consequently, ongoing research aims to design analogues or alternative delivery strategies to preserve efficacy while minimizing toxicity.
 
-## CZP vs. Human Cathepsins: The Selectivity Challenge
+## 1.4- CZP vs. Human Cathepsins: The Selectivity Challenge
 
 Importantly, CZP shares significant structural similarity with the **human cathepsin family** of cysteine proteases, which participate in diverse physiological processes such as immune regulation, tissue remodeling, and hormone processing. Among them, cathepsin L (hCatL) exhibits the highest homology (>50%) with CZP. This resemblance poses a major selectivity challenge, as inhibition of hCatL can lead to undesired side effects. Notably, **K777 potently inhibits hCatL** (in vitro IC<sub>50</sub> = 0.2 nM), leading to its repurposing as **SLV213** for potential treatment of SARS-CoV-2, where hCatL mediates viral entry. Thus, minimizing hCatL inhibition remains a critical objective in the rational design of CZP-directed inhibitors.
 
@@ -79,7 +79,7 @@ Importantly, CZP shares significant structural similarity with the **human cathe
 ---
 
 
-## Perspectives and Outlook
+## 1.5- Perspectives and Outlook
 
 The success and limitations of K777 collectively provide a compelling **proof of concept** for CZP as a therapeutic target.  
 Future development of **selective, non-peptidic TCIs** should focus on:

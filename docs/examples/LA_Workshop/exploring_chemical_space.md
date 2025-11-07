@@ -18,22 +18,22 @@ Given the absence of reported analogues combining these motifs, we will perform 
 
 The overall workflow can be divided into five major steps:
 
-1. **Extraction of building blocks**  
+**5.1- Extraction of building blocks**  
    Retrieve potential reactants from the *eMolecules* chemical database.
 
-2. **Chemical space reduction**  
+**5.2- Chemical space reduction**  
    Filter the combinatorial chemical space based on:
    - *Drug-likeness* criteria 
    - *Synthetic feasibility*
    - *Affordability*, using models provided through **Ersilia Hub**.
 
-3. **In silico synthesis of derivatives**  
+**5.3- In silico synthesis of derivatives**  
    Combine the selected reactants through feasible *in silico* synthetic routes to generate the final compounds, replicating realistic reactions that can be performed in the wet lab.
 
-4. **Toxicity filtering**  
+**5.4- Toxicity filtering**  
    Further reduce the library by eliminating potentially hepatotoxic molecules, applying an **Ersilia Hub DILI prediction model**.
 
-5. **Docking and analysis**  
+**5.5- Docking and analysis**  
    Perform docking-based *vHTS* on the safest and most promising analogues (approximately **5000 compounds**) and analyze their predicted affinity and selectivity profiles toward CZP and hCatL.
 
 ---
@@ -42,7 +42,7 @@ The overall workflow can be divided into five major steps:
 
 ---
 
-## 1. **Extraction of building blocks**  
+## 5.1- **Extraction of building blocks**  
 
 
 #### 🧭 Synthetic plan
@@ -77,7 +77,7 @@ la_workshop_cs = chemspace.ChemSpace(la_workshop)
 ```
 :::
 
-### 1.1. 🗂️ Import eMolecules database
+### 5.1.1- 🗂️ Import eMolecules database
 
 Import the chemical database file from **eMolecules** (usually stored in `chemspace/raw_data/`) into the local **TidyScreen** project database (`chemspace/processed_data/chemspace.db`).
 
@@ -88,7 +88,7 @@ emolecules_database_file = "/PATH/TO/FILE/emolecules.csv" #Set your own path!
 la_workshop_cs.input_csv(emolecules_database_file)
 ```
 
-### 1.2. 🧩 Chemical scaffolds filtering
+### 5.1.2- 🧩 Chemical scaffolds filtering
 
 To subset the types of compounds we need, **TidyScreen** uses chemical filters defined by **SMARTS patterns**.  
 By default, a list of these filters is already included and can be inspected using the following function:
@@ -230,7 +230,7 @@ la_workshop_cs.subset_table_by_smarts_workflow("emolecules",3)
 
 At this point, your chemspace database contains three curated subsets ready for in silico synthesis.
 
-### 1.3. 📸 Inspection of a sample of filtered building blocks
+### 5.1.3- 📸 Inspection of a sample of filtered building blocks
 
 Before moving forward, it is useful to visually inspect a random sample of compounds from each curated subset to ensure that the filtering process performed as expected.
 
@@ -246,12 +246,12 @@ la_workshop_cs.depict_ligand_table("emolecules_subset_2", limit=25, random=True)
 la_workshop_cs.depict_ligand_table("emolecules_subset_3", limit=25, random=True) # Outputs to '/PATH/TO/PROJECT/chemspace/processed_data/misc'
 ```
 
-## 2. Building blocks prioritization
+## 5.2- Building blocks prioritization
 
 In order to narrow down the huge number of potential reactants, we will compute a set of standard **drug-like properties** and apply **Ersilia models** for each curated subset and then **prioritize** entries by applying simple, reproducible property filters.
 
 
-### 2.1. ⚗️ Subsetting by drug-like properties (RDKit)
+### 5.2.1- ⚗️ Subsetting by drug-like properties (RDKit)
 
 TidyScreen relies on the open-source cheminformatics toolkit **[RDKit](https://www.rdkit.org/)** to calculate commonly used molecular descriptors directly from SMILES strings.  
 The following properties are computed by default running the `compute_properties()` function:
@@ -317,7 +317,7 @@ After running the filtering step, TidyScreen automatically creates **new tables*
 
 You can identify these new tables by their names (e.g., `emolecules_subset_1_subset_4`, `emolecules_subset_2_subset_5`, etc.), each corresponding to the filtered version of the original subsets.
 
-### 2.2. 💸 Price-based prioritization with Ersilia
+### 5.2.2- 💸 Price-based prioritization with Ersilia
 
 To further improve **synthetic feasibility**, we will estimate reagent prices using an *Ersilia Open Source Initiative* model and then subset our building blocks by **price ranges**.  
 The model `eos7a45` (CopriNet-style predictor) adds a new column to your table (i.e., `eos7a45_coprinet`) with an estimated price score.
@@ -382,7 +382,7 @@ sqlite3 $PATH/TO/PROJECT/chemspace/processed_data/chemspace.db "CREATE TABLE ami
 You now have three price-filtered, drug-like reagent pools — `aldehydes_druglike_cheap`, `amines_druglike_cheap`, and `aminoacids_druglike_cheap`.  
 These curated sets combine **structural suitability**, **favorable physicochemical properties**, and **economic accessibility**, ensuring a realistic starting point for *in silico* combinatorial synthesis in the next module.
 
-## 3. Combinatorial virtual synthesis
+## 5.3- Combinatorial virtual synthesis
 
 In this section, we will virtually replicate the multistep synthetic route that combines the three types of prioritized building blocks - **amino acids, aldehydes, and methylene amines** - to generate the desired **triazole-based potential TCIs**.
 
@@ -411,7 +411,7 @@ TidyScreen uses **SMARTS** to define chemical transformations in a machine-reada
 
 This approach enables **combinatorial virtual synthesis**, allowing you to simulate multi-step reaction sequences across large datasets of reagents to produce *synthetically plausible* compound libraries.
 
-### 3.1. 🧠 Defining SMARTS reactions
+### 5.3.1- 🧠 Defining SMARTS reactions
 
 We begin by checking whether any reactions are already defined. 
 List available SMARTS reactions (empty at first):
@@ -454,7 +454,7 @@ la_workshop_cs.list_available_smarts_reactions()
 `Reaction_id: 5, Name: DIBAL reduction`  
 `Reaction_id: 6, Name: Horner_Wadsworth_Emmons Olefination`  
 
-### 3.2. 🧪 Creating and applying a reaction workflow
+### 5.3.2- 🧪 Creating and applying a reaction workflow
 
 TidyScreen allows the definition of multi-step reaction workflows, enabling sequential application of transformations to progressively build a virtual library.
 
@@ -498,7 +498,7 @@ This figure provides a quick visual overview of the chemical diversity, substitu
 
 ✅ You have now constructed a multi-step combinatorial virtual synthesis pipeline, producing a library of triazole-based analogues ready for the next step: virtual screening and docking against CZP and hCatL. Wait... ready? 🤔
 
-## 4. Candidates prioritization
+## 5.4- Candidates prioritization
 
 To reduce late-stage attrition and keep *wet-lab* efforts focused, we will filter the virtual products by **predicted human Drug-Induced Liver Injury (DILI)** using again an **Ersilia** model. Then, we will keep candidates with low predicted totoxicity for the docking stage.
 
@@ -535,9 +535,9 @@ In contrast, the 5000 compounds retained for docking fall within a much safer ra
 🙌 You now have a **price-aware, drug-like, synthetically feasible, and low-toxicity** candidate set; effectively defining a **rational and efficient chemical space** for *in silico* exploration. These compounds are ready for the **virtual screening stage** against **CZP**, followed by **counter-screening** versus **hCatL** to assess selectivity.
 
 
-## 5. vHTS
+## 5.5- vHTS
 
-### 5.1. ⚙️ Molecular docking of prioritized candidates
+### 5.5.1- ⚙️ Molecular docking of prioritized candidates
 
 With the chemical space now refined and filtered, we are ready to perform *molecular docking* of the 5K safest and most promising compounds against **CZP**; and later, for selectivity assessment, against **hCatL**.
 
@@ -573,7 +573,7 @@ for i in $(seq 1 11); do ./docking_execution_${i}.sh ; done
 Docking execution requires access to a local GPU board or a compatible GPU computing environment. If no GPU resources are available, these scripts cannot be executed, and docking should instead be run on a properly configured workstation or HPC cluster.
 :::
 
-### 5.2. 📊 Docking results analysis
+### 5.5.2- 📊 Docking results analysis
 
 After completing the large-scale docking run (`assay_6`), we can post-process the results and select candidates with the lowest binding energies.
 As discussed in the previous tutorials (when working with K777 and the training set), the docking score proved to be the most consistent criterion for identifying bioactive poses. Therefore, we will prioritize it as our primary selection metric here.
@@ -742,7 +742,7 @@ la_workshop_docking_analysis.compute_fingerprints_for_whole_assay(
 
 Now that both docking and MMGBSA analyses have been completed for CZP and hCatL, we can directly compare their results to identify ligands that preferentially bind to CZP.
 
-### 5.3. 🎯 Selection of candidates for synthesis
+### 5.5.3- 🎯 Selection of candidates for synthesis
 
 The following SQL query joins both assay databases to retrieve, for each compound, the docking scores and MMGBSA total energies obtained against both receptors.
 By computing the difference between the values (`diff_dock_score` and `diff_d_g_tot`), we can easily pinpoint candidates with improved binding affinity for CZP relative to hCatL.
@@ -835,7 +835,7 @@ Visual inspection further supports this observation: the compound adopts bioacti
 
 While this may suggest moderate selectivity between CZP and hCatL, it also indicates a favorable binding profile that could translate into reduced off-target toxicity; particularly when compared to K777, as preliminarily estimated by Ersilia’s toxicity predictor. 
 
-## 🧩 Summary of the Chemical Space Exploration
+## 🧩 5.6- Summary of the Chemical Space Exploration
 
 Taken together, this small-scale benchmark exemplifies the diversity of outcomes that can emerge from rational in silico design workflows.
 Among the top-ranked ligands, we identified three representative cases:
