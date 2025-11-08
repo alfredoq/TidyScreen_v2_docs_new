@@ -788,14 +788,13 @@ sqlite3 -header -table docking/docking_assays/assay_7/assay_7.db \
 | JXDRXFUSYAZPDG-SGGLPICOSA-O_1  | -7.29       | -49.5987        | -6.45         | -52.0911          | -0.84               | 2.49            |
 </details>
 
-Upon inspection of the results, we will focus on the three top-scoring ligands according to their docking scores, as they exhibit the most promising binding affinities toward CZP.
+Upon inspection of the results, we will focus on the two top-scoring ligands according to their docking scores, as they exhibit the most promising binding affinities toward CZP.
 
 <div style={{ fontSize: '90%' }}>
 | **sub_pose**                    | **CZP_ds** | **CZP_d_g_tot** | **hCatL_ds** | **hCatL_d_g_tot** | **diff_dock_score** | **diff_d_g_tot** |
 |---------------------------------|------------:|----------------:|--------------:|------------------:|--------------------:|----------------|
 | CUFNDGFOXHNKKU-MGUYBSQASA-O_1  | -7.24       | -51.6476        | -5.85         | -39.9543          | -1.39               | -11.69          |
 | CYWLRULGWUKHND-QDRCWIAMSA-O_1  | -8.09       | -34.9057        | -6.73         | -29.0774          | -1.36               | -5.83           |
-| TZCGFRFEIJJRGN-VKFROBJISA-N_1  | -7.44       | -49.0613        | -6.20         | -39.6637          | -1.24               | -9.40           |
 | K777  | -5.42       | -50.2336        | -5.17         | -43.6419          | -0.25               | -6.59           |
 </div>
 
@@ -804,8 +803,6 @@ Upon inspection of the results, we will focus on the three top-scoring ligands a
 In the first case, the compound **CUFNDGFOXHNKKU-MGUYBSQASA-O** stands out due to its large affinity gap between CZP and hCatL, both in docking score and MMGBSA; the latter exceeding even the 6.6 kcal.mol<sup>-1</sup> difference observed for K777.
 
 However, upon visual inspection, we identified a critical issue: this compound was incorrectly generated during the in silico synthesis. 
-
-#################### FIGURE 2D ####################
 
 ---
 <figure>
@@ -846,53 +843,20 @@ Nevertheless, visual inspection suggests this is likely the ideal outcome:
 <div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '20px'}}>
   <figure style={{textAlign: 'center', flex: 1}}>
     <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CZP.png" alt="CZP fingerprint" width="285"/>
-    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O_1 bound to CZP</b></figcaption>
+    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O bound to CZP</b></figcaption>
   </figure>
   <figure style={{textAlign: 'center', flex: 1}}>
     <img src="/TidyScreen_v2_docs_new/img/CYWLRULGWUKHND-QDRCWIAMSA-O-CatL.png" alt="hCatL fingerprint" width="450"/>
-    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O_1 bound to hCatL</b></figcaption>
+    <figcaption><b>CYWLRULGWUKHND-QDRCWIAMSA-O bound to hCatL</b></figcaption>
   </figure>
 </div>
-
-
-
-3. **TZCGFRFEIJJRGN-VKFROBJISA-N**
-
-In this case, all indicators are favorable: both the docking score and MMGBSA ΔG values are improved for CZP relative to hCatL, and the absolute ΔG values are comparable to those obtained for K777.
-Visual inspection further supports this observation: the compound adopts bioactive-like poses in both targets, properly aligned for potential covalent inhibition.
-
----
-<figure>
-  <p align="center">
-  <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N.png" alt="Description of image" width="300"/>
-  <figcaption>Chemical structure of candidate 'TZCGFRFEIJJRGN-VKFROBJISA-N'. </figcaption>
-  </p>
-</figure>
----
-
-
-<div style={{display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: '20px'}}>
-  <figure style={{textAlign: 'center', flex: 1}}>
-    <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N-CZP.png" alt="CZP fingerprint" width="400"/>
-    <figcaption><b>TZCGFRFEIJJRGN-VKFROBJISA-N_1 bound to CZP</b></figcaption>
-  </figure>
-  <figure style={{textAlign: 'center', flex: 1}}>
-    <img src="/TidyScreen_v2_docs_new/img/TZCGFRFEIJJRGN-VKFROBJISA-N-CatL.png" alt="hCatL fingerprint" width="400"/>
-    <figcaption><b>TZCGFRFEIJJRGN-VKFROBJISA-N_1 bound to hCatL</b></figcaption>
-  </figure>
-</div>
-
-
-While this may suggest moderate selectivity between CZP and hCatL, it also indicates a favorable binding profile that could translate into reduced off-target toxicity; particularly when compared to K777, as preliminarily estimated by Ersilia’s toxicity predictor. 
 
 ## 🧩 5.6- Summary of the Chemical Space Exploration
 
 Taken together, this small-scale benchmark exemplifies the diversity of outcomes that can emerge from rational in silico design workflows.
-Among the top-ranked ligands, we identified three representative cases:
+Among the top-ranked ligands, we identified two representative cases:
 
-- a **synthetic artefact** (*CUFNDGFOXHNKKU-MGUYBSQASA-O*), which highlights the need for **rigorous validation** of virtual reaction schemes and filters before large-scale screening;
-
-- a **balanced binder** (*TZCGFRFEIJJRGN-VKFROBJISA-N*), displaying **comparable affinities** for both targets but potentially improved safety relative to K777; and
+- a **synthetic artefact** (*CUFNDGFOXHNKKU-MGUYBSQASA-O*), which highlights the need for **rigorous validation** of virtual reaction schemes and filters before large-scale screening; and
 
 - a **selective inhibitor candidate** (*CYWLRULGWUKHND-QDRCWIAMSA-O*), favoring CZP over hCatL and reproducing a bioactive-like orientation.
 
@@ -928,15 +892,6 @@ sqlite3 docking/docking_assays/assay_8/assay_8.db \
  FROM mmgbsa_fingerprints 
  WHERE sub_pose = 'CYWLRULGWUKHND-QDRCWIAMSA-O_1';"  # Candidate bound to hCatL
 
-sqlite3 docking/docking_assays/assay_7/assay_7.db \
-"SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-CZP.csv', mmgbsa_csv_file) 
- FROM mmgbsa_fingerprints 
- WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';"  # Candidate bound to CZP
-
-sqlite3 docking/docking_assays/assay_8/assay_8.db \
-"SELECT writefile('fp_TZCGFRFEIJJRGN-VKFROBJISA-N_1-hCatL.csv', mmgbsa_csv_file) 
- FROM mmgbsa_fingerprints 
- WHERE sub_pose = 'TZCGFRFEIJJRGN-VKFROBJISA-N_1';"  # Candidate bound to hCatL
 ```
 These CSV files encode per-residue contributions (vdW, electrostatics, solvation, etc.), enabling:
 * automated filtering of poses that reproduce key binding interactions ("hotspots"),
@@ -958,8 +913,7 @@ In contrast, the compound *CYWLRULGWUKHND-QDRCWIAMSA-O* shows a marked differenc
 * Gln19 (CZP) / Gln20 (hCatL), both residues belong to the oxyanion hole, essential for catalytic stabilization.
 * HIP162 (CZP) / HIP164 (hCatL), the histidine partner of Cys25/Cys26 forming the catalytic dyad.
 
-Had we applied an interaction-based filter requiring the satisfaction of these two key contacts, the analysis would have automatically identified *CYWLRULGWUKHND-QDRCWIAMSA-O* as a CZP-selective binder, while *TZCGFRFEIJJRGN-VKFROBJISA-N* would emerge as bioactive in both targets.
-
+Had we applied an interaction-based filter requiring the satisfaction of these two key contacts, the analysis would have automatically identified *CYWLRULGWUKHND-QDRCWIAMSA-O* as a CZP-selective binder.
 
 </details>
 
